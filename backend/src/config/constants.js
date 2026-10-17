@@ -9,6 +9,14 @@ const CATEGORIES = [
   { key: 'aksesore', label: 'Aksesorë' },
 ];
 
+// Who a product is for. Unisex products show up under every tab of the menu.
+const GENDERS = [
+  { key: 'femra', label: 'Femra' },
+  { key: 'meshkuj', label: 'Meshkuj' },
+  { key: 'femije', label: 'Fëmijë' },
+  { key: 'unisex', label: 'Unisex' },
+];
+
 // Order lifecycle, in the order an order normally moves through it.
 const ORDER_STATUSES = [
   { key: 'e_re', label: 'Porosi e re' },
@@ -51,6 +59,7 @@ const keys = (list) => list.map((x) => x.key);
 
 module.exports = {
   CATEGORIES,
+  GENDERS,
   ORDER_STATUSES,
   SHIPMENT_STATUSES,
   SHIPMENT_TO_ORDER_STATUS,

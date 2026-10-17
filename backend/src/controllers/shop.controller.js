@@ -3,20 +3,22 @@ const Order = require('../models/Order');
 const { HttpError } = require('../middleware/errorHandler');
 const { createOrder, normalizePhone } = require('../services/order.service');
 const { notifyOwner, formatNewOrder } = require('../services/notify.service');
-const { CATEGORIES, ORDER_STATUSES, settings } = require('../config/constants');
+const { CATEGORIES, GENDERS, ORDER_STATUSES, settings } = require('../config/constants');
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function config(_req, res) {
   const { shippingFee, freeShippingFrom } = settings();
-  res.json({ categories: CATEGORIES, orderStatuses: ORDER_STATUSES, shippingFee, freeShippingFrom });
+  res.json({ categories: CATEGORIES, genders: GENDERS, orderStatuses: ORDER_STATUSES, shippingFee, freeShippingFrom });
 }
 
 async function listProducts(req, res) {
   const filter = { active: true };
-  const { category, q, featured, sort } = req.query;
+  const { category, gender, q, featured, sale, sort } = req.query;
   if (category) filter.category = String(category);
+  if (gender) filter.gender = { $in: [String(gender), 'unisex'] };
   if (featured === '1') filter.featured = true;
+  if (sale === '1') filter.$expr = { $gt: ['$compareAtPrice', '$price'] };
   if (q) filter.name = { $regex: escapeRegex(String(q).slice(0, 60)), $options: 'i' };
 
   const sortBy = { 'cmimi-ulet': { price: 1 }, 'cmimi-larte': { price: -1 } }[sort] || { createdAt: -1 };

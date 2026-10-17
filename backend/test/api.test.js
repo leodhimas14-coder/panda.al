@@ -79,6 +79,17 @@ test('public catalogue hides supplier details', async () => {
   assert.equal(one.body.product.inStock, true);
 });
 
+test('menu filters: gender includes unisex, sale needs a lower price', async () => {
+  await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Çantë femrash', category: 'canta', gender: 'femra', price: 2000, compareAtPrice: 2500 });
+  await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Rrip meshkujsh', category: 'aksesore', gender: 'meshkuj', price: 900, compareAtPrice: 900 });
+
+  const women = (await request(app).get('/api/products?gender=femra')).body.products.map((p) => p.name).sort();
+  assert.deepEqual(women, ['Portofol', 'Xhaketë Lëkure', 'Çantë femrash'].sort(), 'unisex products appear for women too');
+
+  const sale = (await request(app).get('/api/products?sale=1')).body.products.map((p) => p.name);
+  assert.deepEqual(sale, ['Çantë femrash']);
+});
+
 test('checkout validates phone and variant', async () => {
   let res = await request(app).post('/api/orders').send({ customer: { ...customer, phone: '12345' }, items: [{ productId: wallet._id, quantity: 1 }] });
   assert.equal(res.status, 400);

@@ -5,6 +5,7 @@ const SAMPLE_PRODUCTS = [
   {
     name: 'Xhaketë lëkure e zezë',
     slug: 'xhakete-lekure-e-zeze',
+    gender: 'meshkuj',
     category: 'rroba',
     description: 'Xhaketë me lëkurë artificiale, astar i butë, zinxhirë metalikë.',
     images: [img('panda-jacket')],
@@ -17,6 +18,7 @@ const SAMPLE_PRODUCTS = [
   {
     name: 'Atlete të bardha minimaliste',
     slug: 'atlete-te-bardha-minimaliste',
+    gender: 'unisex',
     category: 'kepuce',
     description: 'Atlete të lehta për çdo ditë, taban gome që nuk rrëshqet.',
     images: [img('panda-sneakers')],
@@ -28,6 +30,7 @@ const SAMPLE_PRODUCTS = [
   {
     name: 'Çantë dore me zinxhir',
     slug: 'cante-dore-me-zinxhir',
+    gender: 'femra',
     category: 'canta',
     description: 'Çantë e vogël elegante, rrip zinxhiri që hiqet, xhep i brendshëm.',
     images: [img('panda-bag')],
@@ -40,6 +43,7 @@ const SAMPLE_PRODUCTS = [
   {
     name: 'Portofol meshkujsh i hollë',
     slug: 'portofol-meshkujsh-i-holle',
+    gender: 'meshkuj',
     category: 'portofola',
     description: 'Portofol kompakt me 6 vende për karta dhe mbrojtje RFID.',
     images: [img('panda-wallet')],
@@ -50,6 +54,7 @@ const SAMPLE_PRODUCTS = [
   {
     name: 'Bluzë me kapuç oversize',
     slug: 'bluze-me-kapuc-oversize',
+    gender: 'unisex',
     category: 'rroba',
     description: 'Pambuk i trashë, prerje e gjerë, unisex.',
     images: [img('panda-hoodie')],
@@ -60,6 +65,7 @@ const SAMPLE_PRODUCTS = [
   {
     name: 'Kapele baseball',
     slug: 'kapele-baseball',
+    gender: 'unisex',
     category: 'aksesore',
     description: 'Kapele pambuku me rregullim mbrapa.',
     images: [img('panda-cap')],

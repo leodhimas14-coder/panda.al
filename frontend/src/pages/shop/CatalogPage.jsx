@@ -1,17 +1,19 @@
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
 import { useApi } from '../../lib/useApi';
-import { qs, } from '../../lib/api';
-import { CATEGORY_LABEL } from '../../lib/format';
+import { qs } from '../../lib/api';
+import { CATEGORY_LABEL, GENDER_LABEL } from '../../lib/format';
 
 export default function CatalogPage() {
   const [params, setParams] = useSearchParams();
   const category = params.get('kategoria') || '';
+  const gender = params.get('gjinia') || '';
+  const sale = params.get('oferta') === '1';
   const q = params.get('q') || '';
   const sort = params.get('rendit') || '';
   const page = Number(params.get('faqja')) || 1;
 
-  const { data, loading, error } = useApi(`/products${qs({ category, q, sort, page, limit: 24 })}`);
+  const { data, loading, error } = useApi(`/products${qs({ category, gender, sale: sale ? '1' : '', q, sort, page, limit: 24 })}`);
 
   const update = (key, value) => {
     const next = new URLSearchParams(params);
@@ -20,17 +22,27 @@ export default function CatalogPage() {
     setParams(next);
   };
 
-  const title = q ? `Rezultatet për "${q}"` : CATEGORY_LABEL[category] || 'Të gjitha produktet';
+  const title = q
+    ? `Rezultatet për "${q}"`
+    : [sale ? 'Ofertat' : CATEGORY_LABEL[category], GENDER_LABEL[gender]].filter(Boolean).join(' · ') || 'Të gjitha produktet';
 
   return (
     <div className="container section">
       <h1 className="page-title">{title}</h1>
+      {gender && (
+        <div className="gender-tabs">
+          {['femra', 'meshkuj', 'femije'].map((g) => (
+            <button type="button" key={g} className={gender === g ? 'active' : ''} onClick={() => update('gjinia', g)}>{GENDER_LABEL[g]}</button>
+          ))}
+        </div>
+      )}
       <div className="filters">
         <div className="chips">
-          <button type="button" className={`chip ${!category ? 'active' : ''}`} onClick={() => update('kategoria', '')}>Të gjitha</button>
+          <button type="button" className={`chip ${!category && !sale ? 'active' : ''}`} onClick={() => { const n = new URLSearchParams(params); n.delete('kategoria'); n.delete('oferta'); n.delete('faqja'); setParams(n); }}>Të gjitha</button>
           {Object.entries(CATEGORY_LABEL).map(([key, label]) => (
             <button type="button" key={key} className={`chip ${category === key ? 'active' : ''}`} onClick={() => update('kategoria', key)}>{label}</button>
           ))}
+          <button type="button" className={`chip chip-sale ${sale ? 'active' : ''}`} onClick={() => update('oferta', sale ? '' : '1')}>Ofertat</button>
         </div>
         <select value={sort} onChange={(e) => update('rendit', e.target.value)} aria-label="Rendit">
           <option value="">Më të rejat</option>

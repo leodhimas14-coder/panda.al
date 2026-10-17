@@ -1,25 +1,31 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import Icon from './Icon';
 import InstallButton from './InstallButton';
+import MenuDrawer from './MenuDrawer';
+import SearchOverlay from './SearchOverlay';
+import DemoBar from './DemoBar';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useConfig } from '../context/ConfigContext';
 import { lek } from '../lib/format';
-import DemoBar from './DemoBar';
 
 const WHATSAPP = import.meta.env.VITE_WHATSAPP;
 
 export default function ShopLayout() {
   const { count } = useCart();
+  const { count: savedCount } = useWishlist();
   const { freeShippingFrom } = useConfig();
-  const navigate = useNavigate();
-  const [q, setQ] = useState('');
+  const { pathname, search } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  const onSearch = (e) => {
-    e.preventDefault();
-    navigate(`/dyqani?q=${encodeURIComponent(q.trim())}`);
-  };
+  // Close overlays whenever the page changes.
+  useEffect(() => { setMenuOpen(false); setSearchOpen(false); }, [pathname, search]);
+
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   return (
     <div className="shop">
@@ -27,26 +33,32 @@ export default function ShopLayout() {
       <div className="promo-bar">Transport falas mbi {lek(freeShippingFrom)} · Pagesë në dorëzim në gjithë Shqipërinë</div>
       <header className="shop-header">
         <div className="container shop-header-inner">
-          <Link to="/" className="brand" aria-label="Panda.al">
-            <Logo /> <span>Panda<span className="brand-tld">.al</span></span>
-          </Link>
-          <nav className="desktop-nav">
-            <NavLink to="/dyqani?kategoria=rroba">Rroba</NavLink>
-            <NavLink to="/dyqani?kategoria=kepuce">Këpucë</NavLink>
-            <NavLink to="/dyqani?kategoria=canta">Çanta</NavLink>
-            <NavLink to="/dyqani?kategoria=portofola">Portofola</NavLink>
-            <NavLink to="/gjurmo">Gjurmo porosinë</NavLink>
-          </nav>
-          <form className="search" onSubmit={onSearch} role="search">
-            <Icon name="search" size={18} />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Kërko produkte…" aria-label="Kërko" />
-          </form>
-          <Link to="/shporta" className="cart-link" aria-label={`Shporta, ${count} artikuj`}>
-            <Icon name="bag" />
-            {count > 0 && <span className="badge">{count}</span>}
-          </Link>
+          <div className="header-side">
+            <button type="button" className="header-icon" onClick={() => { setSearchOpen(false); setMenuOpen((o) => !o); }} aria-label={menuOpen ? 'Mbyll menunë' : 'Hap menunë'} aria-expanded={menuOpen}>
+              <Icon name={menuOpen ? 'x' : 'menu'} />
+            </button>
+            <button type="button" className="header-icon" onClick={() => { setMenuOpen(false); setSearchOpen(true); }} aria-label="Kërko">
+              <Icon name="search" />
+            </button>
+          </div>
+
+          <Link to="/" className="wordmark" aria-label="Panda.al, kryefaqja">PANDA</Link>
+
+          <div className="header-side right">
+            <Link to="/llogaria" className="header-icon" aria-label="Llogaria ime"><Icon name="user" /></Link>
+            <Link to="/te-ruajturat" className="header-icon" aria-label={`Të ruajturat, ${savedCount}`}>
+              <Icon name="heart" />
+              {savedCount > 0 && <span className="badge badge-soft">{savedCount}</span>}
+            </Link>
+            <Link to="/shporta" className="header-icon" aria-label={`Shporta, ${count} artikuj`}>
+              <Icon name="bag" />
+              {count > 0 && <span className="badge">{count}</span>}
+            </Link>
+          </div>
         </div>
+        <MenuDrawer open={menuOpen} onClose={closeMenu} />
       </header>
+      <SearchOverlay open={searchOpen} onClose={closeSearch} />
 
       <main className="shop-main">
         <Outlet />
@@ -61,27 +73,21 @@ export default function ShopLayout() {
           </div>
           <div>
             <h4>Dyqani</h4>
-            <Link to="/dyqani">Të gjitha produktet</Link>
-            <Link to="/gjurmo">Gjurmo porosinë</Link>
-            <Link to="/info">Dërgesa dhe kthimet</Link>
+            <Link to="/dyqani?gjinia=femra">Femra</Link>
+            <Link to="/dyqani?gjinia=meshkuj">Meshkuj</Link>
+            <Link to="/dyqani?gjinia=femije">Fëmijë</Link>
+            <Link to="/dyqani?oferta=1">Ofertat</Link>
           </div>
           <div>
-            <h4>Kontakt</h4>
+            <h4>Ndihmë</h4>
+            <Link to="/llogaria">Llogaria ime</Link>
+            <Link to="/gjurmo">Gjurmo porosinë</Link>
+            <Link to="/info">Dërgesa dhe kthimet</Link>
             {WHATSAPP && <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">WhatsApp</a>}
-            <span className="muted">© {new Date().getFullYear()} Panda.al</span>
           </div>
         </div>
+        <div className="container muted small footer-copy">© {new Date().getFullYear()} Panda.al</div>
       </footer>
-
-      <nav className="bottom-nav" aria-label="Navigimi kryesor">
-        <NavLink to="/" end><Icon name="home" /><span>Kryefaqja</span></NavLink>
-        <NavLink to="/dyqani"><Icon name="grid" /><span>Dyqani</span></NavLink>
-        <NavLink to="/shporta">
-          <span className="icon-wrap"><Icon name="bag" />{count > 0 && <span className="badge">{count}</span>}</span>
-          <span>Shporta</span>
-        </NavLink>
-        <NavLink to="/gjurmo"><Icon name="truck" /><span>Porositë</span></NavLink>
-      </nav>
 
       {WHATSAPP && (
         <a className="wa-float" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer" aria-label="Na shkruani në WhatsApp">

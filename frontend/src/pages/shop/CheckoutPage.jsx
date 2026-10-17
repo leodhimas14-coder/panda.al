@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useConfig } from '../../context/ConfigContext';
 import { api } from '../../lib/api';
 import { CITIES, lek } from '../../lib/format';
+import { rememberOrder } from '../../lib/myOrders';
 
 const SAVED_KEY = 'panda_customer_v1';
 const loadSaved = () => { try { return JSON.parse(localStorage.getItem(SAVED_KEY)) || {}; } catch { return {}; } };
@@ -38,6 +39,7 @@ export default function CheckoutPage() {
         const { note, ...saved } = form;
         localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
       } catch { /* ignore */ }
+      rememberOrder(order, form.phone);
       clear();
       navigate('/porosia-u-krye', { state: { order, phone: form.phone }, replace: true });
     } catch (err) {

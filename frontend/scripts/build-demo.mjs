@@ -17,6 +17,7 @@ const favicon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(readFileS
 const html = `<title>Panda.al</title>
 <meta name="description" content="Demo e dyqanit Panda.al: rroba, këpucë, çanta dhe portofola.">
 <link rel="icon" href="${favicon}">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&family=Jost:wght@400;500;600&display=swap">
 <style>${css}</style>
 <div id="root"></div>
 <script type="module">${js.replace(/<\/script/gi, '<\\/script')}</script>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { lek } from '../lib/format';
+import SaveButton from './SaveButton';
 
 export default function ProductCard({ product }) {
   const discount = product.compareAtPrice > product.price
@@ -12,6 +13,7 @@ export default function ProductCard({ product }) {
         {product.images?.[0] ? <img src={product.images[0]} alt={product.name} loading="lazy" /> : <div className="img-placeholder" />}
         {discount > 0 && <span className="tag tag-sale">-{discount}%</span>}
         {product.inStock && <span className="tag tag-fast">Gati në Shqipëri</span>}
+        <SaveButton product={product} />
       </div>
       <div className="product-card-body">
         <h3>{product.name}</h3>

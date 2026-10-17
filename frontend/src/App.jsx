@@ -9,6 +9,8 @@ import CheckoutPage from './pages/shop/CheckoutPage';
 import OrderDonePage from './pages/shop/OrderDonePage';
 import TrackPage from './pages/shop/TrackPage';
 import InfoPage from './pages/shop/InfoPage';
+import SavedPage from './pages/shop/SavedPage';
+import AccountPage from './pages/shop/AccountPage';
 import AdminLayout from './pages/admin/AdminLayout';
 import LoginPage from './pages/admin/LoginPage';
 import DashboardPage from './pages/admin/DashboardPage';
@@ -44,6 +46,8 @@ export default function App() {
           <Route path="porosia-u-krye" element={<OrderDonePage />} />
           <Route path="gjurmo" element={<TrackPage />} />
           <Route path="info" element={<InfoPage />} />
+          <Route path="te-ruajturat" element={<SavedPage />} />
+          <Route path="llogaria" element={<AccountPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="admin/hyr" element={<LoginPage />} />

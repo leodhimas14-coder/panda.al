@@ -5,6 +5,7 @@ import App from './App';
 import { ConfigProvider } from './context/ConfigContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext';
 import './styles.css';
 
 // The demo runs inside a sandboxed frame without real URLs, so it keeps routes in memory.
@@ -15,9 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Router>
       <ConfigProvider>
         <CartProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
+          <WishlistProvider>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </WishlistProvider>
         </CartProvider>
       </ConfigProvider>
     </Router>

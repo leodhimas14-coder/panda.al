@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { CATEGORY_LABEL, lek } from '../../lib/format';
+import { CATEGORY_LABEL, GENDER_LABEL, lek } from '../../lib/format';
 
 const EMPTY = {
-  name: '', category: 'rroba', description: '', images: [''], price: '', compareAtPrice: '',
+  name: '', category: 'rroba', gender: 'unisex', description: '', images: [''], price: '', compareAtPrice: '',
   variants: [], supplier: { name: '', url: '', costCny: '' }, featured: false, active: true,
 };
 
@@ -82,6 +82,11 @@ export default function ProductFormPage() {
           <label>Kategoria
             <select value={form.category} onChange={set('category')}>
               {Object.entries(CATEGORY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </label>
+          <label>Për kë
+            <select value={form.gender} onChange={set('gender')}>
+              {Object.entries(GENDER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
           <label>Çmimi (L)<input required type="number" min="0" value={form.price} onChange={set('price')} /></label>

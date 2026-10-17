@@ -3,7 +3,7 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v1';
+const KEY = 'panda_demo_db_v2';
 const CNY_TO_ALL = 13;
 const SHIPPING_FEE = 300;
 const FREE_FROM = 6000;
@@ -11,6 +11,9 @@ const FREE_FROM = 6000;
 const CATEGORIES = [
   { key: 'rroba', label: 'Rroba' }, { key: 'kepuce', label: 'Këpucë' }, { key: 'canta', label: 'Çanta' },
   { key: 'portofola', label: 'Portofola' }, { key: 'aksesore', label: 'Aksesorë' },
+];
+const GENDERS = [
+  { key: 'femra', label: 'Femra' }, { key: 'meshkuj', label: 'Meshkuj' }, { key: 'femije', label: 'Fëmijë' }, { key: 'unisex', label: 'Unisex' },
 ];
 const FLOW = ['e_re', 'e_konfirmuar', 'e_blere', 'ne_magazine', 'ne_rruge', 'ne_shqiperi', 'ne_dorezim', 'e_dorezuar'];
 
@@ -27,14 +30,16 @@ function art(emoji, from, to) {
 function seed() {
   const v = (list) => list.map((x) => ({ _id: id(), size: '', color: '', stock: 0, ...x }));
   const products = [
-    { name: 'Xhaketë lëkure e zezë', category: 'rroba', price: 4900, compareAtPrice: 6500, featured: true, images: [art('🧥', '#e9e4dc', '#cfc6b8')], description: 'Xhaketë me lëkurë artificiale, astar i butë, zinxhirë metalikë.', variants: v(['S', 'M', 'L', 'XL'].map((size) => ({ size, color: 'E zezë', stock: size === 'M' ? 3 : 0 }))), supplier: { name: 'Guangzhou Leather Co.', url: '', costCny: 120 } },
-    { name: 'Atlete të bardha minimaliste', category: 'kepuce', price: 3500, featured: true, images: [art('👟', '#e6eef0', '#c4d6db')], description: 'Atlete të lehta për çdo ditë, taban gome që nuk rrëshqet.', variants: v(['38', '39', '40', '41', '42', '43'].map((size) => ({ size, color: 'E bardhë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 75 } },
-    { name: 'Çantë dore me zinxhir', category: 'canta', price: 2900, compareAtPrice: 3900, featured: true, images: [art('👜', '#f1e6e1', '#dcc3b8')], description: 'Çantë e vogël elegante, rrip zinxhiri që hiqet, xhep i brendshëm.', variants: v(['E zezë', 'Bezhë', 'E kuqe'].map((color) => ({ color, stock: 2 }))), supplier: { name: 'Baigou Bags', url: '', costCny: 48 } },
-    { name: 'Portofol meshkujsh i hollë', category: 'portofola', price: 1500, images: [art('👛', '#ece8f1', '#cfc6dc')], description: 'Portofol kompakt me 6 vende për karta dhe mbrojtje RFID.', variants: v(['E zezë', 'Kafe'].map((color) => ({ color, stock: 5 }))), supplier: { name: 'Baigou Bags', url: '', costCny: 18 } },
-    { name: 'Bluzë me kapuç oversize', category: 'rroba', price: 2600, featured: true, images: [art('👕', '#e3ebe4', '#bfd1c2')], description: 'Pambuk i trashë, prerje e gjerë, unisex.', variants: v(['S', 'M', 'L', 'XL'].flatMap((size) => ['Gri', 'E zezë'].map((color) => ({ size, color })))), supplier: { name: 'Hangzhou Knit', url: '', costCny: 55 } },
-    { name: 'Kapele baseball', category: 'aksesore', price: 900, images: [art('🧢', '#e8ecf3', '#c5cfe0')], description: 'Kapele pambuku me rregullim mbrapa.', variants: v(['E zezë', 'E bardhë', 'Blu'].map((color) => ({ color, stock: 4 }))), supplier: { name: 'Yiwu Caps', url: '', costCny: 9 } },
-    { name: 'Çizme lëkure deri te kyçi', category: 'kepuce', price: 5200, images: [art('🥾', '#efe9e2', '#d6c8b6')], description: 'Çizme me taban të trashë, zinxhir anësor.', variants: v(['37', '38', '39', '40', '41'].map((size) => ({ size, color: 'Kafe' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 130 } },
-    { name: 'Çantë shpine urbane', category: 'canta', price: 3200, images: [art('🎒', '#e5ebe9', '#c3d2cd')], description: 'Vend për laptop 15", material që nuk lag.', variants: v(['E zezë', 'Gri'].map((color) => ({ color }))), supplier: { name: 'Baigou Bags', url: '', costCny: 62 } },
+    { name: 'Xhaketë lëkure e zezë', gender: 'meshkuj', category: 'rroba', price: 4900, compareAtPrice: 6500, featured: true, images: [art('🧥', '#e9e4dc', '#cfc6b8')], description: 'Xhaketë me lëkurë artificiale, astar i butë, zinxhirë metalikë.', variants: v(['S', 'M', 'L', 'XL'].map((size) => ({ size, color: 'E zezë', stock: size === 'M' ? 3 : 0 }))), supplier: { name: 'Guangzhou Leather Co.', url: '', costCny: 120 } },
+    { name: 'Atlete të bardha minimaliste', gender: 'unisex', category: 'kepuce', price: 3500, featured: true, images: [art('👟', '#e6eef0', '#c4d6db')], description: 'Atlete të lehta për çdo ditë, taban gome që nuk rrëshqet.', variants: v(['38', '39', '40', '41', '42', '43'].map((size) => ({ size, color: 'E bardhë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 75 } },
+    { name: 'Çantë dore me zinxhir', gender: 'femra', category: 'canta', price: 2900, compareAtPrice: 3900, featured: true, images: [art('👜', '#f1e6e1', '#dcc3b8')], description: 'Çantë e vogël elegante, rrip zinxhiri që hiqet, xhep i brendshëm.', variants: v(['E zezë', 'Bezhë', 'E kuqe'].map((color) => ({ color, stock: 2 }))), supplier: { name: 'Baigou Bags', url: '', costCny: 48 } },
+    { name: 'Portofol meshkujsh i hollë', gender: 'meshkuj', category: 'portofola', price: 1500, images: [art('👛', '#ece8f1', '#cfc6dc')], description: 'Portofol kompakt me 6 vende për karta dhe mbrojtje RFID.', variants: v(['E zezë', 'Kafe'].map((color) => ({ color, stock: 5 }))), supplier: { name: 'Baigou Bags', url: '', costCny: 18 } },
+    { name: 'Bluzë me kapuç oversize', gender: 'unisex', category: 'rroba', price: 2600, featured: true, images: [art('👕', '#e3ebe4', '#bfd1c2')], description: 'Pambuk i trashë, prerje e gjerë, unisex.', variants: v(['S', 'M', 'L', 'XL'].flatMap((size) => ['Gri', 'E zezë'].map((color) => ({ size, color })))), supplier: { name: 'Hangzhou Knit', url: '', costCny: 55 } },
+    { name: 'Kapele baseball', gender: 'unisex', category: 'aksesore', price: 900, images: [art('🧢', '#e8ecf3', '#c5cfe0')], description: 'Kapele pambuku me rregullim mbrapa.', variants: v(['E zezë', 'E bardhë', 'Blu'].map((color) => ({ color, stock: 4 }))), supplier: { name: 'Yiwu Caps', url: '', costCny: 9 } },
+    { name: 'Çizme lëkure deri te kyçi', gender: 'femra', category: 'kepuce', price: 5200, images: [art('🥾', '#efe9e2', '#d6c8b6')], description: 'Çizme me taban të trashë, zinxhir anësor.', variants: v(['37', '38', '39', '40', '41'].map((size) => ({ size, color: 'Kafe' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 130 } },
+    { name: 'Çantë shpine urbane', gender: 'unisex', category: 'canta', price: 3200, images: [art('🎒', '#e5ebe9', '#c3d2cd')], description: 'Vend për laptop 15", material që nuk lag.', variants: v(['E zezë', 'Gri'].map((color) => ({ color }))), supplier: { name: 'Baigou Bags', url: '', costCny: 62 } },
+    { name: 'Xhup fëmijësh me kapuç', gender: 'femije', category: 'rroba', price: 2400, compareAtPrice: 3000, images: [art('🧒', '#f0ebe0', '#dccfb4')], description: 'I ngrohtë dhe i lehtë, për 4–12 vjeç.', variants: v(['4-5', '6-7', '8-9', '10-12'].map((size) => ({ size, color: 'Blu' }))), supplier: { name: 'Huzhou Kids', url: '', costCny: 50 } },
+    { name: 'Atlete fëmijësh me drita', gender: 'femije', category: 'kepuce', price: 1900, images: [art('👟', '#efe3ea', '#d9bfcc')], description: 'Taban që ndriçon kur ecin, mbyllje me ngjitës.', variants: v(['26', '28', '30', '32', '34'].map((size) => ({ size, color: 'Rozë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 38 } },
   ].map((p) => ({ _id: id(), slug: slugify(p.name), active: true, featured: false, compareAtPrice: undefined, createdAt: new Date().toISOString(), ...p }));
 
   const db = { products, orders: [], shipments: [], seq: 1000 };
@@ -147,12 +152,14 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
 
 function route(method, seg, q, body) {
   const [a, b, c, d] = seg;
-  if (a === 'config') return { categories: CATEGORIES, shippingFee: SHIPPING_FEE, freeShippingFrom: FREE_FROM };
+  if (a === 'config') return { categories: CATEGORIES, genders: GENDERS, shippingFee: SHIPPING_FEE, freeShippingFrom: FREE_FROM };
 
   if (a === 'products' && !b) {
     let list = db.products.filter((p) => p.active);
     if (q.category) list = list.filter((p) => p.category === q.category);
     if (q.featured === '1') list = list.filter((p) => p.featured);
+    if (q.gender) list = list.filter((p) => [q.gender, 'unisex'].includes(p.gender || 'unisex'));
+    if (q.sale === '1') list = list.filter((p) => p.compareAtPrice > p.price);
     if (q.q) list = list.filter((p) => p.name.toLowerCase().includes(q.q.toLowerCase()));
     if (q.sort === 'cmimi-ulet') list.sort((x, y) => x.price - y.price);
     if (q.sort === 'cmimi-larte') list.sort((x, y) => y.price - x.price);

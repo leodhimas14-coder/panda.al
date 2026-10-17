@@ -1,0 +1,91 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Icon from './Icon';
+import { useApi } from '../lib/useApi';
+import { useWishlist } from '../context/WishlistContext';
+
+const TABS = [
+  { key: 'femra', label: 'Femra' },
+  { key: 'meshkuj', label: 'Meshkuj' },
+  { key: 'femije', label: 'Fëmijë' },
+];
+
+// Menu rows per tab. Each opens the shop filtered by the tab's gender.
+const ROWS = [
+  { label: 'Të rejat', params: {} },
+  { label: 'Çanta', params: { kategoria: 'canta' } },
+  { label: 'Rroba', params: { kategoria: 'rroba' } },
+  { label: 'Këpucë', params: { kategoria: 'kepuce' } },
+  { label: 'Portofola', params: { kategoria: 'portofola' } },
+  { label: 'Aksesorë', params: { kategoria: 'aksesore' } },
+  { label: 'Ofertat', params: { oferta: '1' } },
+];
+
+const TAB_KEY = 'panda_menu_tab';
+
+export default function MenuDrawer({ open, onClose }) {
+  const [tab, setTab] = useState(() => { try { return localStorage.getItem(TAB_KEY) || 'femra'; } catch { return 'femra'; } });
+  const { count } = useWishlist();
+  const hot = useApi(open ? '/products?featured=1&limit=4' : null);
+
+  useEffect(() => {
+    try { localStorage.setItem(TAB_KEY, tab); } catch { /* ignore */ }
+  }, [tab]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const href = (params) => `/dyqani?${new URLSearchParams({ gjinia: tab, ...params })}`;
+  const hotProducts = hot.data?.products || [];
+
+  return (
+    <div className="menu-drawer" role="dialog" aria-modal="true" aria-label="Menuja">
+      <div className="menu-tabs" role="tablist">
+        {TABS.map((t) => (
+          <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'active' : ''} onClick={() => setTab(t.key)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <nav className="menu-list">
+        {ROWS.map((row) => (
+          <Link key={row.label} to={href(row.params)} onClick={onClose} className={row.params.oferta ? 'menu-sale' : ''}>
+            <span>{row.label}</span>
+            <Icon name="caret" size={16} filled stroke={0} />
+          </Link>
+        ))}
+      </nav>
+
+      <div className="menu-links">
+        <Link to="/te-ruajturat" onClick={onClose}><Icon name="heart" size={20} /> Produktet e ruajtura{count > 0 && <span className="muted">({count})</span>}</Link>
+        <Link to="/llogaria" onClick={onClose}><Icon name="user" size={20} /> Llogaria dhe porositë e mia</Link>
+        <Link to="/gjurmo" onClick={onClose}><Icon name="truck" size={20} /> Gjurmo porosinë</Link>
+      </div>
+
+      {hotProducts.length > 0 && (
+        <div className="menu-hot">
+          <h3>Më të kërkuarat!</h3>
+          <div className="menu-hot-row">
+            {hotProducts.map((p) => (
+              <Link key={p._id} to={`/produkt/${p.slug}`} onClick={onClose} className="menu-hot-card">
+                {p.images[0] ? <img src={p.images[0]} alt="" /> : <div className="img-placeholder" />}
+                <span>{p.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -28,6 +28,8 @@ export const STATUS_LABEL = {
 
 export const STATUS_FLOW = ['e_re', 'e_konfirmuar', 'e_blere', 'ne_magazine', 'ne_rruge', 'ne_shqiperi', 'ne_dorezim', 'e_dorezuar'];
 
+export const GENDER_LABEL = { femra: 'Femra', meshkuj: 'Meshkuj', femije: 'Fëmijë', unisex: 'Unisex' };
+
 export const CATEGORY_LABEL = { rroba: 'Rroba', kepuce: 'Këpucë', canta: 'Çanta', portofola: 'Portofola', aksesore: 'Aksesorë' };
 
 export const SHIPMENT_LABEL = { ne_pergatitje: 'Në përgatitje', nisur: 'U nis nga Kina', mberritur: 'Mbërriti në Shqipëri' };

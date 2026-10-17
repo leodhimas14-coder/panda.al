@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { CATEGORIES, keys } = require('../config/constants');
+const { CATEGORIES, GENDERS, keys } = require('../config/constants');
 
 const variantSchema = new mongoose.Schema(
   {
@@ -16,6 +16,7 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     category: { type: String, enum: keys(CATEGORIES), required: true },
+    gender: { type: String, enum: keys(GENDERS), default: 'unisex' },
     description: { type: String, default: '' },
     images: [{ type: String, trim: true }],
     price: { type: Number, required: true, min: 0 }, // lekë
@@ -35,6 +36,7 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ name: 'text', description: 'text' });
 productSchema.index({ category: 1, active: 1, createdAt: -1 });
+productSchema.index({ gender: 1, active: 1, createdAt: -1 });
 
 productSchema.methods.toPublic = function toPublic() {
   const { supplier, ...rest } = this.toObject();

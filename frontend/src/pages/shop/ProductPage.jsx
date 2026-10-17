@@ -4,6 +4,7 @@ import { useApi } from '../../lib/useApi';
 import { useCart } from '../../context/CartContext';
 import { lek } from '../../lib/format';
 import Icon from '../../components/Icon';
+import SaveButton from '../../components/SaveButton';
 
 const uniq = (arr) => [...new Set(arr.filter(Boolean))];
 
@@ -84,7 +85,10 @@ export default function ProductPage() {
         </div>
 
         <div className="product-info">
-          <h1>{product.name}</h1>
+          <div className="product-title-row">
+            <h1>{product.name}</h1>
+            <SaveButton product={product} className="save-btn-lg" size={24} />
+          </div>
           <div className="price-row big">
             <span className="price">{lek(product.price)}</span>
             {discount > 0 && <><span className="price-old">{lek(product.compareAtPrice)}</span><span className="tag tag-sale static">-{discount}%</span></>}
