@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from './Icon';
 import { useApi } from '../lib/useApi';
-import { useWishlist } from '../context/WishlistContext';
 
 const TABS = [
   { key: 'femra', label: 'Femra' },
@@ -23,9 +22,8 @@ const ROWS = [
 
 const TAB_KEY = 'panda_menu_tab';
 
-export default function MenuDrawer({ open, onClose }) {
+export default function MenuDrawer({ open, onClose, top = 0 }) {
   const [tab, setTab] = useState(() => { try { return localStorage.getItem(TAB_KEY) || 'femra'; } catch { return 'femra'; } });
-  const { count } = useWishlist();
   const hot = useApi(open ? '/products?featured=1&limit=4' : null);
 
   useEffect(() => {
@@ -49,7 +47,7 @@ export default function MenuDrawer({ open, onClose }) {
   const hotProducts = hot.data?.products || [];
 
   return (
-    <div className="menu-drawer" role="dialog" aria-modal="true" aria-label="Menuja">
+    <div className="menu-drawer" style={{ top }} role="dialog" aria-modal="true" aria-label="Menuja">
       <div className="menu-tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} className={tab === t.key ? 'active' : ''} onClick={() => setTab(t.key)}>
@@ -67,11 +65,6 @@ export default function MenuDrawer({ open, onClose }) {
         ))}
       </nav>
 
-      <div className="menu-links">
-        <Link to="/te-ruajturat" onClick={onClose}><Icon name="heart" size={20} /> Produktet e ruajtura{count > 0 && <span className="muted">({count})</span>}</Link>
-        <Link to="/llogaria" onClick={onClose}><Icon name="user" size={20} /> Llogaria dhe porositë e mia</Link>
-        <Link to="/gjurmo" onClick={onClose}><Icon name="truck" size={20} /> Gjurmo porosinë</Link>
-      </div>
 
       {hotProducts.length > 0 && (
         <div className="menu-hot">

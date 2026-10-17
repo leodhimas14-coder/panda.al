@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import Icon from './Icon';
@@ -20,6 +20,23 @@ export default function ShopLayout() {
   const { pathname, search } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [menuTop, setMenuTop] = useState(0);
+  const headerRef = useRef(null);
+
+  // The menu sits right under the header. Measure where the header ends
+  // (it moves as the banners above it scroll away) instead of relying on CSS,
+  // which iPhone Safari gets wrong for fixed panels inside a sticky header.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const measure = () => setMenuTop(Math.max(0, headerRef.current?.getBoundingClientRect().bottom ?? 0));
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, { passive: true });
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure);
+    };
+  }, [menuOpen]);
 
   // Close overlays whenever the page changes.
   useEffect(() => { setMenuOpen(false); setSearchOpen(false); }, [pathname, search]);
@@ -31,7 +48,7 @@ export default function ShopLayout() {
     <div className="shop">
       <DemoBar />
       <div className="promo-bar">Transport falas mbi {lek(freeShippingFrom)} · Pagesë në dorëzim në gjithë Shqipërinë</div>
-      <header className="shop-header">
+      <header className="shop-header" ref={headerRef}>
         <div className="container shop-header-inner">
           <div className="header-side">
             <button type="button" className="header-icon" onClick={() => { setSearchOpen(false); setMenuOpen((o) => !o); }} aria-label={menuOpen ? 'Mbyll menunë' : 'Hap menunë'} aria-expanded={menuOpen}>
@@ -56,8 +73,8 @@ export default function ShopLayout() {
             </Link>
           </div>
         </div>
-        <MenuDrawer open={menuOpen} onClose={closeMenu} />
       </header>
+      <MenuDrawer open={menuOpen} onClose={closeMenu} top={menuTop} />
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
 
       <main className="shop-main">
