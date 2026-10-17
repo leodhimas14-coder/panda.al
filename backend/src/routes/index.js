@@ -9,6 +9,7 @@ const orders = require('../controllers/orders.controller');
 const shipments = require('../controllers/shipments.controller');
 const reports = require('../controllers/reports.controller');
 const settings = require('../controllers/settings.controller');
+const newsletter = require('../controllers/newsletter.controller');
 
 const limiter = (max) =>
   rateLimit({
@@ -28,6 +29,7 @@ router.get('/products', h(shop.listProducts));
 router.get('/products/:slug', h(shop.getProduct));
 router.post('/orders', limiter(20), h(shop.placeOrder));
 router.get('/orders/track/:number', limiter(60), h(shop.trackOrder));
+router.post('/newsletter', limiter(10), h(newsletter.subscribe));
 
 // Staff
 router.post('/auth/login', limiter(10), h(auth.login));
@@ -60,6 +62,7 @@ admin.get('/reports/summary', adminOnly, h(reports.summary));
 
 admin.get('/settings', adminOnly, h(settings.get));
 admin.put('/settings', adminOnly, h(settings.update));
+admin.get('/subscribers', adminOnly, h(newsletter.list));
 
 router.use('/admin', admin);
 

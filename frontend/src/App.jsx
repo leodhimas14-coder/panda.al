@@ -11,6 +11,9 @@ import TrackPage from './pages/shop/TrackPage';
 import InfoPage from './pages/shop/InfoPage';
 import SavedPage from './pages/shop/SavedPage';
 import AccountPage from './pages/shop/AccountPage';
+import AboutPage from './pages/shop/AboutPage';
+import TermsPage from './pages/shop/TermsPage';
+import SubscribersPage from './pages/admin/SubscribersPage';
 import AdminLayout from './pages/admin/AdminLayout';
 import LoginPage from './pages/admin/LoginPage';
 import DashboardPage from './pages/admin/DashboardPage';
@@ -49,6 +52,8 @@ export default function App() {
           <Route path="info" element={<InfoPage />} />
           <Route path="te-ruajturat" element={<SavedPage />} />
           <Route path="llogaria" element={<AccountPage />} />
+          <Route path="rreth-nesh" element={<AboutPage />} />
+          <Route path="kushtet" element={<TermsPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="admin/hyr" element={<LoginPage />} />
@@ -62,6 +67,7 @@ export default function App() {
           <Route path="dergesat" element={<ShipmentsPage />} />
           <Route path="dergesat/:id" element={<ShipmentDetailPage />} />
           <Route path="kryefaqja" element={<HomeSettingsPage />} />
+          <Route path="abonentet" element={<SubscribersPage />} />
         </Route>
       </Routes>
     </>

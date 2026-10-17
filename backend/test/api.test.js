@@ -212,6 +212,17 @@ test('home banner: empty by default, admin sets a video, staff cannot', async ()
   assert.equal(cfg.homeBanner.link, '/dyqani?oferta=1');
 });
 
+test('newsletter: needs a valid email and consent, no duplicates', async () => {
+  assert.equal((await request(app).post('/api/newsletter').send({ email: 'jo-email', consent: true })).status, 400);
+  assert.equal((await request(app).post('/api/newsletter').send({ email: 'arta@gmail.com' })).status, 400);
+  assert.equal((await request(app).post('/api/newsletter').send({ email: 'Arta@Gmail.com', consent: true })).status, 201);
+  assert.equal((await request(app).post('/api/newsletter').send({ email: 'arta@gmail.com', consent: true })).status, 201);
+
+  assert.equal((await asStaff(request(app).get('/api/admin/subscribers'))).status, 403);
+  const list = await asAdmin(request(app).get('/api/admin/subscribers'));
+  assert.deepEqual(list.body.subscribers.map((s) => s.email), ['arta@gmail.com']);
+});
+
 test('admin routes need a token', async () => {
   const res = await request(app).get('/api/admin/orders');
   assert.equal(res.status, 401);

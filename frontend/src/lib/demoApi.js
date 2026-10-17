@@ -3,7 +3,7 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v3';
+const KEY = 'panda_demo_db_v4';
 const CNY_TO_ALL = 13;
 const SHIPPING_FEE = 300;
 const FREE_FROM = 6000;
@@ -42,7 +42,7 @@ function seed() {
     { name: 'Atlete fëmijësh me drita', gender: 'femije', category: 'kepuce', price: 1900, images: [art('👟', '#efe3ea', '#d9bfcc')], description: 'Taban që ndriçon kur ecin, mbyllje me ngjitës.', variants: v(['26', '28', '30', '32', '34'].map((size) => ({ size, color: 'Rozë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 38 } },
   ].map((p) => ({ _id: id(), slug: slugify(p.name), active: true, featured: false, compareAtPrice: undefined, createdAt: new Date().toISOString(), ...p }));
 
-  const db = { products, orders: [], shipments: [], seq: 1000, settings: { homeBanner: { url: '', posterUrl: '', link: '' } } };
+  const db = { products, orders: [], shipments: [], seq: 1000, settings: { homeBanner: { url: '', posterUrl: '', link: '' } }, subscribers: [] };
   const day = 86400000;
   const mk = (name, phone, city, lines, status, ago, extra = {}) => {
     const order = buildOrder(db, { customer: { name, phone, city, address: 'Rruga e Kavajës 45, kati 2', note: '' }, items: lines }, true);
@@ -183,6 +183,14 @@ function route(method, seg, q, body) {
     if (!o) fail(404, 'Porosia nuk u gjet. Kontrolloni numrin e porosisë dhe telefonin.');
     return { order: toTracking(o) };
   }
+  if (a === 'newsletter') {
+    const email = String(body.email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) fail(400, 'Shkruani një adresë email të saktë');
+    if (body.consent !== true) fail(400, 'Duhet të pranoni të merrni njoftime nga Panda.al');
+    db.subscribers = db.subscribers || [];
+    if (!db.subscribers.some((s) => s.email === email)) db.subscribers.unshift({ _id: id(), email, createdAt: new Date().toISOString() });
+    return { ok: true };
+  }
   if (a === 'auth') {
     if (b === 'login') {
       if (body.email?.toLowerCase() !== 'admin@panda.al' || body.password !== 'panda1234') fail(401, 'Email ose fjalëkalim i gabuar');
@@ -287,6 +295,7 @@ function route(method, seg, q, body) {
     return { shipment: populate(s) };
   }
 
+  if (b === 'subscribers') return { subscribers: db.subscribers || [], total: (db.subscribers || []).length };
   if (b === 'settings') {
     if (method === 'PUT') {
       const ok = (u, rel) => !u || /^https?:\/\//i.test(u) || (rel && u.startsWith('/') && !u.startsWith('//'));

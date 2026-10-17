@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
 import HomeBanner from '../../components/HomeBanner';
+import GenderTiles from '../../components/GenderTiles';
 import { useApi } from '../../lib/useApi';
 
 const CATEGORIES = [
@@ -33,6 +34,8 @@ export default function HomePage() {
       <ProductSection title="Më të pëlqyerat" state={featured} />
 
       <ProductSection title="Të rejat" state={latest} link="/dyqani" />
+
+      <GenderTiles />
     </>
   );
 }

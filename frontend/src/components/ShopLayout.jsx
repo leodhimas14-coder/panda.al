@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import Logo from './Logo';
 import Icon from './Icon';
-import InstallButton from './InstallButton';
+import SiteFooter from './SiteFooter';
 import MenuDrawer from './MenuDrawer';
 import SearchOverlay from './SearchOverlay';
 import DemoBar from './DemoBar';
@@ -81,30 +80,7 @@ export default function ShopLayout() {
         <Outlet />
       </main>
 
-      <footer className="shop-footer">
-        <div className="container footer-grid">
-          <div>
-            <Link to="/" className="brand"><Logo /> <span>Panda<span className="brand-tld">.al</span></span></Link>
-            <p className="muted">Rroba, këpucë, çanta dhe portofola me çmime të mira. Çdo produkt kontrollohet në magazinën tonë para se të niset.</p>
-            <InstallButton />
-          </div>
-          <div>
-            <h4>Dyqani</h4>
-            <Link to="/dyqani?gjinia=femra">Femra</Link>
-            <Link to="/dyqani?gjinia=meshkuj">Meshkuj</Link>
-            <Link to="/dyqani?gjinia=femije">Fëmijë</Link>
-            <Link to="/dyqani?oferta=1">Ofertat</Link>
-          </div>
-          <div>
-            <h4>Ndihmë</h4>
-            <Link to="/llogaria">Llogaria ime</Link>
-            <Link to="/gjurmo">Gjurmo porosinë</Link>
-            <Link to="/info">Dërgesa dhe kthimet</Link>
-            {WHATSAPP && <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">WhatsApp</a>}
-          </div>
-        </div>
-        <div className="container muted small footer-copy">© {new Date().getFullYear()} Panda.al</div>
-      </footer>
+      <SiteFooter />
 
       {WHATSAPP && (
         <a className="wa-float" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer" aria-label="Na shkruani në WhatsApp">
