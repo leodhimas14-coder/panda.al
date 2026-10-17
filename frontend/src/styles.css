@@ -146,11 +146,6 @@ h1, h2, h3, h4 { line-height: 1.2; margin: 0 0 0.5em; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
 .section-head h2 { font-size: 1.4rem; margin: 0; font-weight: 400; }
 .section-head a { color: var(--ink-2); font-size: 0.9rem; text-decoration: none; }
-.perks { display: grid; gap: 12px; }
-.perks > div { background: var(--accent-soft); border-radius: var(--radius); padding: 16px; display: grid; gap: 4px; }
-.perks span { color: var(--ink-2); font-size: 0.9rem; }
-@media (min-width: 700px) { .perks { grid-template-columns: repeat(3, 1fr); } }
-
 /* Product grid & card */
 .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 700px) { .product-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }

@@ -32,12 +32,6 @@ export default function HomePage() {
 
       <ProductSection title="Më të pëlqyerat" state={featured} />
 
-      <section className="container section perks">
-        <div><strong>💵 Pagesë në dorëzim</strong><span>Paguan vetëm kur e merr porosinë.</span></div>
-        <div><strong>🔍 Kontroll cilësie</strong><span>Çdo artikull kontrollohet para nisjes.</span></div>
-        <div><strong>📦 Gjurmim i porosisë</strong><span>E di gjithmonë ku ndodhet pakoja.</span></div>
-      </section>
-
       <ProductSection title="Të rejat" state={latest} link="/dyqani" />
     </>
   );
