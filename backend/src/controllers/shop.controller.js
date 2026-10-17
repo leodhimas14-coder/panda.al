@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const Setting = require('../models/Setting');
 const { HttpError } = require('../middleware/errorHandler');
 const { createOrder, normalizePhone } = require('../services/order.service');
 const { notifyOwner, formatNewOrder } = require('../services/notify.service');
@@ -7,9 +8,10 @@ const { CATEGORIES, GENDERS, ORDER_STATUSES, settings } = require('../config/con
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-function config(_req, res) {
+async function config(_req, res) {
   const { shippingFee, freeShippingFrom } = settings();
-  res.json({ categories: CATEGORIES, genders: GENDERS, orderStatuses: ORDER_STATUSES, shippingFee, freeShippingFrom });
+  const { homeBanner } = await Setting.get();
+  res.json({ categories: CATEGORIES, genders: GENDERS, orderStatuses: ORDER_STATUSES, shippingFee, freeShippingFrom, homeBanner });
 }
 
 async function listProducts(req, res) {

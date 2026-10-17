@@ -21,6 +21,7 @@ import ProductFormPage from './pages/admin/ProductFormPage';
 import PurchaseListPage from './pages/admin/PurchaseListPage';
 import ShipmentsPage from './pages/admin/ShipmentsPage';
 import ShipmentDetailPage from './pages/admin/ShipmentDetailPage';
+import HomeSettingsPage from './pages/admin/HomeSettingsPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="per-te-blere" element={<PurchaseListPage />} />
           <Route path="dergesat" element={<ShipmentsPage />} />
           <Route path="dergesat/:id" element={<ShipmentDetailPage />} />
+          <Route path="kryefaqja" element={<HomeSettingsPage />} />
         </Route>
       </Routes>
     </>

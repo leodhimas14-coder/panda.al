@@ -195,6 +195,23 @@ test('purchase list → bought → shipment → delivered → profit', async () 
   assert.equal(report.body.profit, 2132);
 });
 
+test('home banner: empty by default, admin sets a video, staff cannot', async () => {
+  let cfg = (await request(app).get('/api/config')).body;
+  assert.equal(cfg.homeBanner.url, '');
+
+  const bad = await asAdmin(request(app).put('/api/admin/settings')).send({ homeBanner: { url: 'javascript:alert(1)' } });
+  assert.equal(bad.status, 400);
+
+  const forbidden = await asStaff(request(app).put('/api/admin/settings')).send({ homeBanner: { url: 'https://cdn.example.com/a.mp4' } });
+  assert.equal(forbidden.status, 403);
+
+  const ok = await asAdmin(request(app).put('/api/admin/settings')).send({ homeBanner: { url: 'https://cdn.example.com/a.mp4', link: '/dyqani?oferta=1' } });
+  assert.equal(ok.status, 200);
+  cfg = (await request(app).get('/api/config')).body;
+  assert.equal(cfg.homeBanner.url, 'https://cdn.example.com/a.mp4');
+  assert.equal(cfg.homeBanner.link, '/dyqani?oferta=1');
+});
+
 test('admin routes need a token', async () => {
   const res = await request(app).get('/api/admin/orders');
   assert.equal(res.status, 401);

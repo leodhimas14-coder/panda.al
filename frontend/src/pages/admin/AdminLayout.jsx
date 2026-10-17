@@ -21,6 +21,7 @@ export default function AdminLayout() {
           <NavLink to="/admin/per-te-blere">Për të blerë</NavLink>
           <NavLink to="/admin/dergesat">Dërgesat (kargo)</NavLink>
           {isAdmin && <NavLink to="/admin/produktet">Produktet</NavLink>}
+          {isAdmin && <NavLink to="/admin/kryefaqja">Kryefaqja</NavLink>}
         </nav>
         <div className="admin-user">
           <span>{user.name}</span>

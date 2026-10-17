@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
-import InstallButton from '../../components/InstallButton';
+import HomeBanner from '../../components/HomeBanner';
 import { useApi } from '../../lib/useApi';
 
 const CATEGORIES = [
@@ -17,17 +17,7 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero">
-        <div className="container hero-inner">
-          <p className="eyebrow">Koleksioni i ri</p>
-          <h1>Stil i ri çdo javë,<br />me çmime që të pëlqejnë.</h1>
-          <p className="hero-sub">Rroba, këpucë, çanta dhe portofola. Porosit sot, paguaj kur të vjen në derë.</p>
-          <div className="hero-actions">
-            <Link to="/dyqani" className="btn btn-primary btn-lg">Bli tani</Link>
-            <InstallButton className="btn btn-outline-light btn-lg" />
-          </div>
-        </div>
-      </section>
+      <HomeBanner />
 
       <section className="container section">
         <div className="category-row">

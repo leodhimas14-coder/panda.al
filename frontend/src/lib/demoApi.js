@@ -3,7 +3,7 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v2';
+const KEY = 'panda_demo_db_v3';
 const CNY_TO_ALL = 13;
 const SHIPPING_FEE = 300;
 const FREE_FROM = 6000;
@@ -42,7 +42,7 @@ function seed() {
     { name: 'Atlete fëmijësh me drita', gender: 'femije', category: 'kepuce', price: 1900, images: [art('👟', '#efe3ea', '#d9bfcc')], description: 'Taban që ndriçon kur ecin, mbyllje me ngjitës.', variants: v(['26', '28', '30', '32', '34'].map((size) => ({ size, color: 'Rozë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 38 } },
   ].map((p) => ({ _id: id(), slug: slugify(p.name), active: true, featured: false, compareAtPrice: undefined, createdAt: new Date().toISOString(), ...p }));
 
-  const db = { products, orders: [], shipments: [], seq: 1000 };
+  const db = { products, orders: [], shipments: [], seq: 1000, settings: { homeBanner: { url: '', posterUrl: '', link: '' } } };
   const day = 86400000;
   const mk = (name, phone, city, lines, status, ago, extra = {}) => {
     const order = buildOrder(db, { customer: { name, phone, city, address: 'Rruga e Kavajës 45, kati 2', note: '' }, items: lines }, true);
@@ -152,7 +152,7 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
 
 function route(method, seg, q, body) {
   const [a, b, c, d] = seg;
-  if (a === 'config') return { categories: CATEGORIES, genders: GENDERS, shippingFee: SHIPPING_FEE, freeShippingFrom: FREE_FROM };
+  if (a === 'config') return { homeBanner: db.settings.homeBanner, categories: CATEGORIES, genders: GENDERS, shippingFee: SHIPPING_FEE, freeShippingFrom: FREE_FROM };
 
   if (a === 'products' && !b) {
     let list = db.products.filter((p) => p.active);
@@ -287,6 +287,16 @@ function route(method, seg, q, body) {
     return { shipment: populate(s) };
   }
 
+  if (b === 'settings') {
+    if (method === 'PUT') {
+      const ok = (u, rel) => !u || /^https?:\/\//i.test(u) || (rel && u.startsWith('/') && !u.startsWith('//'));
+      const hb = body.homeBanner || {};
+      if (!ok(hb.url) || !ok(hb.posterUrl)) fail(400, 'Linku duhet të fillojë me https://');
+      if (!ok(hb.link, true)) fail(400, 'Linku kur shtypet duhet të fillojë me https:// ose /');
+      db.settings.homeBanner = { url: (hb.url || '').trim(), posterUrl: (hb.posterUrl || '').trim(), link: (hb.link || '').trim() };
+    }
+    return { settings: db.settings };
+  }
   if (b === 'reports') {
     const now = new Date();
     const from = new Date(now.getFullYear(), now.getMonth(), 1);

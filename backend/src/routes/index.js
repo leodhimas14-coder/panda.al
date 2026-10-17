@@ -8,6 +8,7 @@ const products = require('../controllers/products.controller');
 const orders = require('../controllers/orders.controller');
 const shipments = require('../controllers/shipments.controller');
 const reports = require('../controllers/reports.controller');
+const settings = require('../controllers/settings.controller');
 
 const limiter = (max) =>
   rateLimit({
@@ -22,7 +23,7 @@ const limiter = (max) =>
 const router = express.Router();
 
 // Public shop
-router.get('/config', shop.config);
+router.get('/config', h(shop.config));
 router.get('/products', h(shop.listProducts));
 router.get('/products/:slug', h(shop.getProduct));
 router.post('/orders', limiter(20), h(shop.placeOrder));
@@ -56,6 +57,9 @@ admin.post('/shipments/:id/orders', h(shipments.addOrders));
 admin.delete('/shipments/:id/orders/:orderId', h(shipments.removeOrder));
 
 admin.get('/reports/summary', adminOnly, h(reports.summary));
+
+admin.get('/settings', adminOnly, h(settings.get));
+admin.put('/settings', adminOnly, h(settings.update));
 
 router.use('/admin', admin);
 
