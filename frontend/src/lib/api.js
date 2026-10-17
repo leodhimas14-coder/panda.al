@@ -6,7 +6,13 @@ export const tokenStore = {
   set: (t) => { try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ } },
 };
 
+export const IS_DEMO = import.meta.env.VITE_DEMO === '1';
+
 export async function api(path, { method = 'GET', body, auth = false } = {}) {
+  if (IS_DEMO) {
+    const { demoApi } = await import('./demoApi');
+    return demoApi(path, { method, body });
+  }
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (auth) {

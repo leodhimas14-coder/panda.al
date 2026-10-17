@@ -1,6 +1,7 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../../components/Logo';
+import DemoBar from '../../components/DemoBar';
 
 export default function AdminLayout() {
   const { user, loading, logout } = useAuth();
@@ -27,6 +28,7 @@ export default function AdminLayout() {
         </div>
       </aside>
       <main className="admin-main">
+        <DemoBar admin />
         <Outlet />
       </main>
     </div>

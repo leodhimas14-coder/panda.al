@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
 import { lek, dateTime, STATUS_LABEL, SHIPMENT_LABEL } from '../../lib/format';
+import ConfirmButton from '../../components/ConfirmButton';
 
 export default function ShipmentDetailPage() {
   const { id } = useParams();
@@ -70,7 +71,7 @@ export default function ShipmentDetailPage() {
         <div className="row">
           <button type="button" className="btn btn-ghost" onClick={() => patch(form)}>Ruaj</button>
           {shipment.status === 'ne_pergatitje' && (
-            <button type="button" className="btn btn-primary" disabled={shipment.orders.length === 0} onClick={() => window.confirm('Dërgesa u nis nga Kina? Klientët do të shohin "Në rrugë".') && patch({ ...form, status: 'nisur' })}>✈️ U nis nga Kina</button>
+            <ConfirmButton className="btn btn-primary" disabled={shipment.orders.length === 0} onConfirm={() => patch({ ...form, status: 'nisur' })} confirmText="Konfirmo: klientët do shohin “Në rrugë”">✈️ U nis nga Kina</ConfirmButton>
           )}
           {shipment.status === 'nisur' && (
             <button type="button" className="btn btn-primary" onClick={() => patch({ ...form, status: 'mberritur' })}>📦 Mbërriti në Shqipëri</button>

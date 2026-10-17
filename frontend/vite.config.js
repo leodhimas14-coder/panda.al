@@ -2,10 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // The demo build is a single self-contained page, so it skips the service worker.
   plugins: [
     react(),
-    VitePWA({
+    mode !== 'demo' && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -42,7 +43,9 @@ export default defineConfig({
       },
     }),
   ],
+  base: mode === 'demo' ? './' : '/',
+  build: mode === 'demo' ? { outDir: 'dist-demo', assetsInlineLimit: 100000000, cssCodeSplit: false, rollupOptions: { output: { inlineDynamicImports: true } } } : undefined,
   server: {
     proxy: { '/api': 'http://localhost:4000' },
   },
-});
+}));

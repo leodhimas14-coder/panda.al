@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
 import { lek, dateTime, STATUS_LABEL, STATUS_FLOW } from '../../lib/format';
+import ConfirmButton from '../../components/ConfirmButton';
 
 const waLink = (phone) => `https://wa.me/${phone.replace(/\D/g, '')}`;
 
@@ -85,7 +86,7 @@ export default function OrderDetailPage() {
                 <option value="">Ndrysho në…</option>
                 {STATUS_FLOW.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
               </select>
-              <button type="button" className="btn btn-danger-ghost btn-block" disabled={busy} onClick={() => window.confirm('Ta anulojmë porosinë?') && save({ status: 'e_anuluar' })}>Anulo porosinë</button>
+              <ConfirmButton className="btn btn-danger-ghost btn-block" disabled={busy} onConfirm={() => save({ status: 'e_anuluar' })} confirmText="Po, anuloje porosinë">Anulo porosinë</ConfirmButton>
             </div>
           )}
           {allLocal && <p className="muted small">Të gjithë artikujt janë në stok në Shqipëri: kjo porosi nuk kalon nga Kina.</p>}

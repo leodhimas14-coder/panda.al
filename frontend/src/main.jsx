@@ -1,15 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { ConfigProvider } from './context/ConfigContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import './styles.css';
 
+// The demo runs inside a sandboxed frame without real URLs, so it keeps routes in memory.
+const Router = import.meta.env.VITE_DEMO === '1' ? MemoryRouter : BrowserRouter;
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <Router>
       <ConfigProvider>
         <CartProvider>
           <AuthProvider>
@@ -17,6 +20,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           </AuthProvider>
         </CartProvider>
       </ConfigProvider>
-    </BrowserRouter>
+    </Router>
   </React.StrictMode>
 );

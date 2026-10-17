@@ -6,6 +6,7 @@ import InstallButton from './InstallButton';
 import { useCart } from '../context/CartContext';
 import { useConfig } from '../context/ConfigContext';
 import { lek } from '../lib/format';
+import DemoBar from './DemoBar';
 
 const WHATSAPP = import.meta.env.VITE_WHATSAPP;
 
@@ -22,6 +23,7 @@ export default function ShopLayout() {
 
   return (
     <div className="shop">
+      <DemoBar />
       <div className="promo-bar">Transport falas mbi {lek(freeShippingFrom)} · Pagesë në dorëzim në gjithë Shqipërinë</div>
       <header className="shop-header">
         <div className="container shop-header-inner">

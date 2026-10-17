@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Icon from './Icon';
+import { IS_DEMO } from '../lib/api';
 
 const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
@@ -21,7 +22,7 @@ export default function InstallButton({ className = 'btn btn-ghost' }) {
     };
   }, []);
 
-  if (installed || (!prompt && !isIos())) return null;
+  if (IS_DEMO || installed || (!prompt && !isIos())) return null;
 
   const onClick = async () => {
     if (prompt) {

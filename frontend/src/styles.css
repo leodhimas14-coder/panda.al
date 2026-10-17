@@ -300,3 +300,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .login-card { width: 100%; max-width: 380px; }
 .login-card h1 { font-size: 1.3rem; margin-top: 10px; }
 .login-card svg { margin: 0 auto; }
+
+/* Two-step confirm + demo banner */
+.btn-armed { background: var(--sale) !important; color: #fff !important; border-color: var(--sale) !important; }
+.demo-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); background: var(--accent-soft); color: var(--ink); font-size: 0.85rem; }
+.admin-main .demo-bar { margin: -20px -16px 20px; border-radius: 0; }
+@media (min-width: 900px) { .admin-main .demo-bar { margin: -28px -32px 24px; } }
+.demo-actions { display: flex; gap: 14px; align-items: center; }
+.demo-actions a { font-weight: 600; color: var(--accent); text-decoration: none; }
+.demo-actions button { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 4px 10px; cursor: pointer; font-size: 0.8rem; }

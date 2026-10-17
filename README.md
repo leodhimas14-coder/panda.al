@@ -94,3 +94,9 @@ Shënime:
 - Faturë fiskale (fiskalizimi)
 - Lidhje me korrierin vendas për kodin e gjurmimit
 - Njoftime push për klientët ("Porosia jote u nis")
+
+## Demo pa server
+
+`cd frontend && npm run build:demo` krijon `frontend/dist-demo/panda-demo.html`: një faqe e vetme
+që përmban dyqanin dhe panelin e adminit, me të dhëna shembull që ruhen vetëm në shfletues.
+Admin në demo: `admin@panda.al` / `panda1234`.

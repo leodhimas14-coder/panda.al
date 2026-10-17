@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
 import { lek } from '../../lib/format';
+import ConfirmButton from '../../components/ConfirmButton';
 
 export default function PurchaseListPage() {
   const { data, loading, error, reload } = useApi('/admin/purchase-list', { auth: true });
@@ -12,7 +13,6 @@ export default function PurchaseListPage() {
   const totalCny = items.reduce((s, i) => s + i.totalCny, 0);
 
   const markAll = async () => {
-    if (!window.confirm(`T'i shënojmë ${orderIds.length} porositë si "Blerë te furnitori"?`)) return;
     setBusy(true);
     try {
       await api('/admin/purchase-list/mark-bought', { method: 'POST', auth: true, body: { orderIds } });
@@ -26,7 +26,7 @@ export default function PurchaseListPage() {
     <div>
       <div className="admin-title-row">
         <h1 className="admin-title">Për të blerë në Kinë</h1>
-        {items.length > 0 && <button type="button" className="btn btn-primary" disabled={busy} onClick={markAll}>U blenë të gjitha</button>}
+        {items.length > 0 && <ConfirmButton className="btn btn-primary" disabled={busy} onConfirm={markAll} confirmText={`Shëno ${orderIds.length} porosi si të blera?`}>U blenë të gjitha</ConfirmButton>}
       </div>
       <p className="muted small">Artikujt nga porositë e <b>konfirmuara</b> që nuk i ke në stok në Shqipëri, të grupuar sipas produktit, masës dhe ngjyrës.</p>
       {error && <div className="alert alert-error">{error.message}</div>}
