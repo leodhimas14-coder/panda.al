@@ -31,8 +31,13 @@ const orderSchema = new mongoose.Schema(
     subtotal: { type: Number, required: true },
     shippingFee: { type: Number, required: true },
     total: { type: Number, required: true },
-    paymentMethod: { type: String, enum: keys(PAYMENT_METHODS), default: 'cod' },
+    paymentMethod: { type: String, enum: keys(PAYMENT_METHODS), default: 'card' },
     paid: { type: Boolean, default: false },
+    payment: {
+      provider: { type: String, default: '' },
+      reference: { type: String, default: '' },
+      paidAt: Date,
+    },
     status: { type: String, enum: keys(ORDER_STATUSES), default: 'e_re' },
     statusHistory: [
       {
@@ -57,6 +62,7 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'customer.phone': 1 });
+orderSchema.index({ 'payment.reference': 1 }, { sparse: true });
 
 // What the customer is allowed to see on the tracking page.
 orderSchema.methods.toTracking = function toTracking() {
@@ -71,6 +77,7 @@ orderSchema.methods.toTracking = function toTracking() {
     shippingFee: this.shippingFee,
     total: this.total,
     paymentMethod: this.paymentMethod,
+    paid: this.paid,
     city: this.customer.city,
     courierTracking: this.courierTracking,
     createdAt: this.createdAt,

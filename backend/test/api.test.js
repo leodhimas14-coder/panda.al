@@ -13,6 +13,8 @@ process.env.CNY_TO_ALL = '13';
 
 const { createApp } = require('../src/app');
 const User = require('../src/models/User');
+const Order = require('../src/models/Order');
+const { expireUnpaidOrders } = require('../src/services/order.service');
 
 let mongo;
 let app;
@@ -40,6 +42,12 @@ after(async () => {
 
 const asAdmin = (req) => req.set('Authorization', `Bearer ${adminToken}`);
 const asStaff = (req) => req.set('Authorization', `Bearer ${staffToken}`);
+// Completes (or fails) the fake card payment the way the provider would.
+async function pay(orderRes, success = true) {
+  const ref = new URL(orderRes.body.paymentUrl).searchParams.get('ref');
+  return request(app).post('/api/payments/test/callback').send({ reference: ref, success });
+}
+
 const customer = { name: 'Arta Hoxha', phone: '069 123 4567', city: 'Tiranë', address: 'Rr. Myslym Shyri 10' };
 
 test('login rejects a wrong password', async () => {
@@ -114,14 +122,18 @@ test('order uses server prices, reserves local stock and charges shipping', asyn
   assert.equal(res.body.order.number, 'PA-1001');
   assert.equal(res.body.order.subtotal, 10000);
   assert.equal(res.body.order.shippingFee, 0, 'free shipping above 6000');
-  orderA = res.body.order;
+  assert.equal(res.body.order.status, 'pa_paguar', 'card orders wait for payment');
+  assert.match(res.body.paymentUrl, /\/pagesa\?/);
+  orderA = (await pay(res)).body.order;
+  assert.equal(orderA.status, 'e_re');
+  assert.equal(orderA.paid, true);
 
   const product = (await asAdmin(request(app).get(`/api/admin/products/${jacket._id}`))).body.product;
   assert.equal(product.variants[0].stock, 1, 'M stock reserved');
 
   const res2 = await request(app).post('/api/orders').send({ customer: { ...customer, phone: '+355682223333' }, items: [{ productId: wallet._id, quantity: 2 }] });
   assert.equal(res2.body.order.total, 3300, '2×1500 + 300 shipping');
-  orderB = res2.body.order;
+  orderB = (await pay(res2)).body.order;
 });
 
 test('tracking requires the matching phone number', async () => {
@@ -221,6 +233,59 @@ test('newsletter: needs a valid email and consent, no duplicates', async () => {
   assert.equal((await asStaff(request(app).get('/api/admin/subscribers'))).status, 403);
   const list = await asAdmin(request(app).get('/api/admin/subscribers'));
   assert.deepEqual(list.body.subscribers.map((s) => s.email), ['arta@gmail.com']);
+});
+
+test('failed card payment cancels the order and returns the stock', async () => {
+  const [m] = jacket.variants;
+  const stockOf = async () => (await asAdmin(request(app).get(`/api/admin/products/${jacket._id}`))).body.product.variants[0].stock;
+  const before = await stockOf();
+  const res = await request(app).post('/api/orders').send({ customer, items: [{ productId: jacket._id, variantId: m._id, quantity: 1 }] });
+  assert.equal(await stockOf(), before - 1);
+
+  const failed = await pay(res, false);
+  assert.equal(failed.body.order.status, 'e_anuluar');
+  assert.equal(await stockOf(), before);
+
+  const again = await pay(res, true);
+  assert.equal(again.body.order.status, 'e_anuluar', 'a late success does not revive a cancelled order');
+});
+
+test('unpaid card orders expire after the time limit', async () => {
+  const res = await request(app).post('/api/orders').send({ customer, items: [{ productId: wallet._id, quantity: 1 }] });
+  await Order.collection.updateOne({ number: res.body.order.number }, { $set: { createdAt: new Date(Date.now() - 2 * 3600 * 1000) } });
+  assert.ok((await expireUnpaidOrders(60)) >= 1);
+  const track = await request(app).get(`/api/orders/track/${res.body.order.number}?phone=0691234567`);
+  assert.equal(track.body.order.status, 'e_anuluar');
+});
+
+test('admin settings: shipping, payment methods, promo bar, contact', async () => {
+  let res = await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: false, cod: false } });
+  assert.equal(res.status, 400, 'at least one payment method');
+
+  res = await asAdmin(request(app).put('/api/admin/settings')).send({
+    shipping: { fee: 400, freeFrom: 10000, localText: '1–2 ditë', chinaText: '12–20 ditë' },
+    payments: { card: true, cod: true },
+    promoBar: { enabled: true, text: 'Ulje 20% këtë javë' },
+    contact: { whatsapp: '+355 69 123 4567', email: 'info@panda.al' },
+    cnyToAll: 14,
+  });
+  assert.equal(res.status, 200);
+
+  const cfg = (await request(app).get('/api/config')).body;
+  assert.equal(cfg.promoBar.text, 'Ulje 20% këtë javë');
+  assert.equal(cfg.shipping.fee, 400);
+  assert.equal(cfg.contact.whatsapp, '355691234567');
+  assert.equal(cfg.cnyToAll, undefined, 'exchange rate stays private');
+
+  const cod = await request(app).post('/api/orders').send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
+  assert.equal(cod.body.order.status, 'e_re', 'cash orders skip the payment step');
+  assert.equal(cod.body.order.total, 1900, '1500 + new 400 shipping');
+  assert.equal(cod.body.paymentUrl, null);
+
+  // Back to card only, as the rest of the shop expects.
+  await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, cod: false }, shipping: { fee: 300, freeFrom: 6000 }, cnyToAll: 13 });
+  const refused = await request(app).post('/api/orders').send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
+  assert.equal(refused.status, 400);
 });
 
 test('admin routes need a token', async () => {

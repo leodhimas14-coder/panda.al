@@ -1,17 +1,25 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
-const Setting = require('../models/Setting');
 const { HttpError } = require('../middleware/errorHandler');
-const { createOrder, normalizePhone } = require('../services/order.service');
-const { notifyOwner, formatNewOrder } = require('../services/notify.service');
-const { CATEGORIES, GENDERS, ORDER_STATUSES, settings } = require('../config/constants');
+const { createOrder, applyPaymentResult, normalizePhone } = require('../services/order.service');
+const { getProvider, cardAvailable } = require('../services/payment.service');
+const { CATEGORIES, GENDERS, ORDER_STATUSES } = require('../config/constants');
+const { getShopSettings, publicSettings } = require('../services/settings.service');
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 async function config(_req, res) {
-  const { shippingFee, freeShippingFrom } = settings();
-  const { homeBanner } = await Setting.get();
-  res.json({ categories: CATEGORIES, genders: GENDERS, orderStatuses: ORDER_STATUSES, shippingFee, freeShippingFrom, homeBanner });
+  const s = publicSettings(await getShopSettings());
+  if (!cardAvailable()) s.payments = { ...s.payments, card: false };
+  res.json({
+    ...s,
+    // Kept for older app versions that read these top-level fields.
+    shippingFee: s.shipping.fee,
+    freeShippingFrom: s.shipping.freeFrom,
+    categories: CATEGORIES,
+    genders: GENDERS,
+    orderStatuses: ORDER_STATUSES,
+  });
 }
 
 async function listProducts(req, res) {
@@ -41,9 +49,18 @@ async function getProduct(req, res) {
 }
 
 async function placeOrder(req, res) {
-  const order = await createOrder(req.body);
-  notifyOwner(formatNewOrder(order));
-  res.status(201).json({ order: order.toTracking() });
+  const { order, paymentUrl } = await createOrder(req.body);
+  res.status(201).json({ order: order.toTracking(), paymentUrl });
+}
+
+// The provider's server tells us the result of a card payment.
+async function paymentCallback(req, res) {
+  const provider = getProvider();
+  if (req.params.provider !== provider.name) throw new HttpError(404, 'Nuk u gjet');
+  const result = provider.parseCallback(req);
+  if (!result) throw new HttpError(400, 'Njoftim i pavlefshëm');
+  const order = await applyPaymentResult(result.reference, result.paid);
+  res.json({ order: order.toTracking() });
 }
 
 // The phone number acts as a password, so order numbers can't be enumerated.
@@ -55,4 +72,4 @@ async function trackOrder(req, res) {
   res.json({ order: order.toTracking() });
 }
 
-module.exports = { config, listProducts, getProduct, placeOrder, trackOrder };
+module.exports = { config, listProducts, getProduct, placeOrder, paymentCallback, trackOrder };

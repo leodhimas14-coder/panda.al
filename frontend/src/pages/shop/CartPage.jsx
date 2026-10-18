@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useConfig } from '../../context/ConfigContext';
+import { useConfig, shippingFor } from '../../context/ConfigContext';
 import { lek } from '../../lib/format';
 import Icon from '../../components/Icon';
 
 export default function CartPage() {
   const { lines, setQuantity, subtotal } = useCart();
-  const { shippingFee, freeShippingFrom } = useConfig();
+  const { shipping } = useConfig();
 
   if (lines.length === 0) {
     return (
@@ -19,8 +19,8 @@ export default function CartPage() {
     );
   }
 
-  const fee = subtotal >= freeShippingFrom ? 0 : shippingFee;
-  const missing = freeShippingFrom - subtotal;
+  const fee = shippingFor(subtotal, shipping);
+  const missing = shipping.freeFrom > 0 ? shipping.freeFrom - subtotal : 0;
 
   return (
     <div className="container section narrow">
@@ -28,7 +28,7 @@ export default function CartPage() {
       {missing > 0 && (
         <div className="free-ship">
           Edhe <b>{lek(missing)}</b> për transport falas
-          <div className="progress"><span style={{ width: `${Math.min(100, (subtotal / freeShippingFrom) * 100)}%` }} /></div>
+          <div className="progress"><span style={{ width: `${Math.min(100, (subtotal / shipping.freeFrom) * 100)}%` }} /></div>
         </div>
       )}
       <ul className="cart-lines">

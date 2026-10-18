@@ -12,6 +12,7 @@ import InfoPage from './pages/shop/InfoPage';
 import SavedPage from './pages/shop/SavedPage';
 import AccountPage from './pages/shop/AccountPage';
 import AboutPage from './pages/shop/AboutPage';
+import PaymentPage from './pages/shop/PaymentPage';
 import TermsPage from './pages/shop/TermsPage';
 import SubscribersPage from './pages/admin/SubscribersPage';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -24,7 +25,7 @@ import ProductFormPage from './pages/admin/ProductFormPage';
 import PurchaseListPage from './pages/admin/PurchaseListPage';
 import ShipmentsPage from './pages/admin/ShipmentsPage';
 import ShipmentDetailPage from './pages/admin/ShipmentDetailPage';
-import HomeSettingsPage from './pages/admin/HomeSettingsPage';
+import SettingsPage from './pages/admin/SettingsPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="shporta" element={<CartPage />} />
           <Route path="porosit" element={<CheckoutPage />} />
           <Route path="porosia-u-krye" element={<OrderDonePage />} />
+          <Route path="pagesa" element={<PaymentPage />} />
           <Route path="gjurmo" element={<TrackPage />} />
           <Route path="info" element={<InfoPage />} />
           <Route path="te-ruajturat" element={<SavedPage />} />
@@ -66,7 +68,8 @@ export default function App() {
           <Route path="per-te-blere" element={<PurchaseListPage />} />
           <Route path="dergesat" element={<ShipmentsPage />} />
           <Route path="dergesat/:id" element={<ShipmentDetailPage />} />
-          <Route path="kryefaqja" element={<HomeSettingsPage />} />
+          <Route path="cilesimet" element={<SettingsPage />} />
+          <Route path="kryefaqja" element={<SettingsPage />} />
           <Route path="abonentet" element={<SubscribersPage />} />
         </Route>
       </Routes>

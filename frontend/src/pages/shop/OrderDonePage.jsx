@@ -11,11 +11,11 @@ export default function OrderDonePage() {
     <div className="container section narrow center">
       <div className="success-icon"><Icon name="check" size={40} stroke={2.5} /></div>
       <h1>Faleminderit! Porosia u pranua.</h1>
-      <p className="muted">Do t'ju telefonojmë së shpejti për ta konfirmuar.</p>
+      <p className="muted">{order.paid ? 'Pagesa u krye. Do t\'ju njoftojmë kur porosia të niset.' : 'Do t\'ju telefonojmë së shpejti për ta konfirmuar.'}</p>
       <div className="card order-number">
         <span className="muted small">Numri i porosisë</span>
         <strong>{order.number}</strong>
-        <span>Totali: <b>{lek(order.total)}</b> · pagesë në dorëzim</span>
+        <span>Totali: <b>{lek(order.total)}</b> · {order.paid ? 'paguar me kartë ✓' : 'pagesë në dorëzim'}</span>
       </div>
       <p className="muted small">Ruajeni numrin e porosisë. Me të dhe numrin e telefonit mund ta gjurmoni porosinë kurdo.</p>
       <div className="stack">

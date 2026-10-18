@@ -5,6 +5,7 @@ import { useCart } from '../../context/CartContext';
 import { lek } from '../../lib/format';
 import Icon from '../../components/Icon';
 import SaveButton from '../../components/SaveButton';
+import { useConfig } from '../../context/ConfigContext';
 
 const uniq = (arr) => [...new Set(arr.filter(Boolean))];
 
@@ -13,6 +14,7 @@ export default function ProductPage() {
   const { data, loading, error } = useApi(`/products/${slug}`);
   const product = data?.product;
   const { add } = useCart();
+  const { shipping, payments } = useConfig();
   const navigate = useNavigate();
 
   const [imageIndex, setImageIndex] = useState(0);
@@ -117,8 +119,8 @@ export default function ProductPage() {
 
           <div className="delivery-note">
             {variant?.stock > 0 || (!variants.length && product.inStock)
-              ? <><b>🚚 Gati në Shqipëri</b> · dorëzim 1–3 ditë pune</>
-              : <><b>✈️ Porosi nga magazina jonë</b> · dorëzim 10–18 ditë</>}
+              ? <><b>🚚 Gati në Shqipëri</b> · dorëzim {shipping.localText}</>
+              : <><b>✈️ Porosi nga magazina jonë</b> · dorëzim {shipping.chinaText}</>}
           </div>
 
           <div className="buy-row">
@@ -141,7 +143,7 @@ export default function ProductPage() {
             </div>
           )}
           <ul className="perks-list">
-            <li>💵 Paguan në dorëzim</li>
+            <li>{payments.card ? '💳 Pagesë e sigurt me kartë' : '💵 Paguan në dorëzim'}</li>
             <li>🔍 Kontrollohet para nisjes</li>
             <li>↩️ Ndërrim mase brenda 7 ditëve</li>
           </ul>

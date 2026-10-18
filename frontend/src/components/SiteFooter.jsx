@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import Icon from './Icon';
 import InstallButton from './InstallButton';
 import { api } from '../lib/api';
+import { useConfig } from '../context/ConfigContext';
 
-const WHATSAPP = import.meta.env.VITE_WHATSAPP;
 
 function Newsletter() {
   const [email, setEmail] = useState('');
@@ -55,6 +55,8 @@ function Section({ title, children }) {
 }
 
 export default function SiteFooter() {
+  const { contact } = useConfig();
+  const whatsapp = contact.whatsapp || import.meta.env.VITE_WHATSAPP;
   return (
     <footer className="site-footer">
       <div className="container">
@@ -63,9 +65,11 @@ export default function SiteFooter() {
         <nav className="footer-sections" aria-label="Lidhje të dobishme">
           <Section title="Shërbimi ndaj klientit">
             <Link to="/gjurmo">Gjurmo porosinë</Link>
-            <Link to="/info">Dërgesa dhe pagesa në dorëzim</Link>
+            <Link to="/info">Dërgesa dhe pagesa</Link>
             <Link to="/info">Ndërrimi i masës dhe kthimet</Link>
-            {WHATSAPP && <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer">Na shkruaj në WhatsApp</a>}
+            {whatsapp && <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">Na shkruaj në WhatsApp</a>}
+            {contact.phone && <span className="footer-contact">Tel: {contact.phone}</span>}
+            {contact.email && <span className="footer-contact">Email: {contact.email}</span>}
           </Section>
           <Section title="Llogaria ime">
             <Link to="/llogaria">Porositë e mia</Link>

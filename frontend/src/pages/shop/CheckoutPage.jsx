@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
-import { useConfig } from '../../context/ConfigContext';
-import { api } from '../../lib/api';
+import { useConfig, shippingFor } from '../../context/ConfigContext';
+import { api, IS_DEMO } from '../../lib/api';
+import { savePendingPayment } from '../../lib/pendingPayment';
 import { CITIES, lek } from '../../lib/format';
 import { rememberOrder } from '../../lib/myOrders';
 
@@ -11,7 +12,10 @@ const loadSaved = () => { try { return JSON.parse(localStorage.getItem(SAVED_KEY
 
 export default function CheckoutPage() {
   const { lines, subtotal, clear } = useCart();
-  const { shippingFee, freeShippingFrom } = useConfig();
+  const { shipping, payments } = useConfig();
+  const methods = [payments.card && 'card', payments.cod && 'cod'].filter(Boolean);
+  const [method, setMethod] = useState(null);
+  const paymentMethod = methods.includes(method) ? method : methods[0] || 'card';
   const navigate = useNavigate();
   const [form, setForm] = useState(() => ({ name: '', phone: '', city: '', address: '', note: '', ...loadSaved() }));
   const [submitting, setSubmitting] = useState(false);
@@ -19,7 +23,7 @@ export default function CheckoutPage() {
 
   if (lines.length === 0) return <Navigate to="/shporta" replace />;
 
-  const fee = subtotal >= freeShippingFrom ? 0 : shippingFee;
+  const fee = shippingFor(subtotal, shipping);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const onSubmit = async (e) => {
@@ -27,11 +31,11 @@ export default function CheckoutPage() {
     setError('');
     setSubmitting(true);
     try {
-      const { order } = await api('/orders', {
+      const { order, paymentUrl } = await api('/orders', {
         method: 'POST',
         body: {
           customer: form,
-          paymentMethod: 'cod',
+          paymentMethod,
           items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, quantity: l.quantity })),
         },
       });
@@ -40,6 +44,15 @@ export default function CheckoutPage() {
         localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
       } catch { /* ignore */ }
       rememberOrder(order, form.phone);
+
+      if (paymentUrl) {
+        // Card: the cart is emptied only once the payment goes through.
+        savePendingPayment({ number: order.number, phone: form.phone });
+        const url = new URL(paymentUrl, window.location.href);
+        if (IS_DEMO || url.origin === window.location.origin) navigate(`${url.pathname}${url.search}`);
+        else window.location.assign(url.href);
+        return;
+      }
       clear();
       navigate('/porosia-u-krye', { state: { order, phone: form.phone }, replace: true });
     } catch (err) {
@@ -64,10 +77,21 @@ export default function CheckoutPage() {
         <label>Adresa e saktë<textarea required rows={2} placeholder="Rruga, pallati, kati, pika referimi" value={form.address} onChange={set('address')} autoComplete="street-address" /></label>
         <label>Shënim (opsionale)<input value={form.note} onChange={set('note')} placeholder="p.sh. më telefononi para se të vini" /></label>
 
-        <div className="pay-method">
-          <input type="radio" checked readOnly id="cod" />
-          <label htmlFor="cod"><b>Pagesë në dorëzim</b><span className="muted small">Paguani me para në dorë kur të merrni porosinë.</span></label>
-        </div>
+        <fieldset className="pay-methods">
+          <legend>Mënyra e pagesës</legend>
+          {methods.includes('card') && (
+            <label className={`pay-method ${paymentMethod === 'card' ? 'active' : ''}`}>
+              <input type="radio" name="payment" id="pay-card" checked={paymentMethod === 'card'} onChange={() => setMethod('card')} />
+              <span><b>💳 Kartë (Visa, Mastercard)</b><span className="muted small">Paguan tani në faqen e sigurt të bankës.</span></span>
+            </label>
+          )}
+          {methods.includes('cod') && (
+            <label className={`pay-method ${paymentMethod === 'cod' ? 'active' : ''}`}>
+              <input type="radio" name="payment" id="pay-cod" checked={paymentMethod === 'cod'} onChange={() => setMethod('cod')} />
+              <span><b>💵 Pagesë në dorëzim</b><span className="muted small">Paguan me para në dorë kur të vijë porosia.</span></span>
+            </label>
+          )}
+        </fieldset>
 
         <div className="summary">
           {lines.map((l) => (
@@ -79,9 +103,9 @@ export default function CheckoutPage() {
 
         {error && <div className="alert alert-error">{error}</div>}
         <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={submitting}>
-          {submitting ? 'Po dërgohet…' : 'Konfirmo porosinë'}
+          {submitting ? 'Po dërgohet…' : paymentMethod === 'card' ? `Paguaj ${lek(subtotal + fee)}` : 'Konfirmo porosinë'}
         </button>
-        <p className="muted small center">Do t'ju telefonojmë për të konfirmuar porosinë. <Link to="/info">Kushtet e dërgesës</Link></p>
+        <p className="muted small center">{paymentMethod === 'card' ? 'Do të kaloni te faqja e sigurt e pagesës.' : 'Do t\'ju telefonojmë për të konfirmuar porosinë.'} <Link to="/info">Dërgesa dhe pagesa</Link></p>
       </form>
     </div>
   );

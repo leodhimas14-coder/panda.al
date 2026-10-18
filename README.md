@@ -2,7 +2,8 @@
 
 Dyqan online (website + aplikacion) për **rroba, këpucë, çanta dhe portofola**.
 Mallrat blihen në Kinë, mblidhen dhe kontrollohen në magazinën tonë atje,
-vijnë me kargo në Shqipëri dhe i dorëzohen klientit me **pagesë në dorëzim**.
+vijnë me kargo në Shqipëri dhe i dorëzohen klientit. Klienti **paguan me kartë**
+në momentin e porosisë (pagesa në dorëzim mund të ndizet nga paneli).
 
 ## Çfarë ka brenda
 
@@ -31,6 +32,33 @@ Porosi e re → E konfirmuar → Blerë te furnitori → Në magazinë në Kinë
 Nëse produkti është në stok në Shqipëri (fusha "Stok AL"), porosia shkon direkt
 nga "E konfirmuar" te "Te korrieri" dhe klientit i shfaqet "Gati në Shqipëri · 1–3 ditë".
 
+## Pagesa me kartë
+
+1. Klienti plotëson porosinë dhe shtyp **Paguaj**. Porosia krijohet me statusin
+   **"Pret pagesën"** dhe stoku rezervohet.
+2. Klienti kalon te faqja e pagesës së bankës/ofruesit.
+3. Ofruesi njofton serverin (`POST /api/payments/<ofruesi>/callback`):
+   - pagesa u krye → porosia bëhet **"Porosi e re"**, të vjen njoftimi dhe del te admini;
+   - pagesa dështoi → porosia anulohet dhe stoku kthehet.
+4. Porositë e papaguara anulohen vetë pas 1 ore.
+
+**Çfarë duhet për pagesa të vërteta:** një llogari tregtari (merchant) për pagesa
+online me kartë, nga banka jote (p.sh. BKT, Raiffeisen, Credins) ose nga një ofrues
+si POK. Kur ta kesh, merr dokumentacionin e API-së dhe çelësat, dhe ofruesi shtohet
+te `backend/src/services/payment.service.js` (dy funksione: krijo pagesën, lexo njoftimin).
+Deri atëherë punon ofruesi `test`, një faqe prove pa para të vërteta.
+Në prodhim, `test` fiket vetë dhe pagesa me kartë shfaqet si e paaktivizuar.
+
+## Paneli i adminit
+
+- **Porositë:** butoni **✓ Prano** / **✕ Refuzo** te çdo porosi e re. Te porosia,
+  "Hapi tjetër" tregon butonin për hapin e radhës: U ble te furnitori →
+  Mbërriti në magazinë → U nis me transport → Mbërriti në Shqipëri →
+  Iu dha korrierit → U dorëzua.
+- **Cilësimet:** shiriti nën kokë, videoja e kryefaqes, kostoja e transportit dhe
+  kufiri për transport falas, kohët e dorëzimit, mënyrat e pagesës, WhatsApp,
+  telefoni, email-i dhe kursi i juanit.
+
 ## Provoje në kompjuter (pa instaluar databazë)
 
 Duhet Node.js 20 ose më i ri.
@@ -51,7 +79,7 @@ Të dhënat fshihen kur ndalon serverin.
    - `npm install && npm run seed` (krijon adminin nga `ADMIN_EMAIL`/`ADMIN_PASSWORD`)
    - `npm start`
 3. **Frontend-i** (Netlify, Vercel, Cloudflare Pages):
-   - `VITE_API_URL=https://api.panda.al` dhe `VITE_WHATSAPP=355XXXXXXXXX`
+   - `VITE_API_URL=https://api.panda.al` (WhatsApp-i vendoset te Admin → Cilësimet)
    - `npm run build`, pastaj publiko dosjen `dist/`
    - Vendos një rregull që çdo faqe të kthejë `index.html` (SPA fallback)
 4. **Domain-i**: lidh `panda.al` me frontend-in dhe `api.panda.al` me backend-in.

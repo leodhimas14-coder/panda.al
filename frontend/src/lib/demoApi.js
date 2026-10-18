@@ -3,10 +3,16 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v4';
-const CNY_TO_ALL = 13;
-const SHIPPING_FEE = 300;
-const FREE_FROM = 6000;
+const KEY = 'panda_demo_db_v5';
+const DEFAULT_SETTINGS = {
+  homeBanner: { url: '', posterUrl: '', link: '' },
+  promoBar: { enabled: true, text: 'Transport falas mbi 6.000 L · Dërgesa në gjithë Shqipërinë' },
+  shipping: { fee: 300, freeFrom: 6000, localText: '1–3 ditë pune', chinaText: '10–18 ditë' },
+  payments: { card: true, cod: false },
+  contact: { whatsapp: '', phone: '', email: '' },
+  cnyToAll: 13,
+};
+const S = () => db.settings;
 
 const CATEGORIES = [
   { key: 'rroba', label: 'Rroba' }, { key: 'kepuce', label: 'Këpucë' }, { key: 'canta', label: 'Çanta' },
@@ -42,7 +48,7 @@ function seed() {
     { name: 'Atlete fëmijësh me drita', gender: 'femije', category: 'kepuce', price: 1900, images: [art('👟', '#efe3ea', '#d9bfcc')], description: 'Taban që ndriçon kur ecin, mbyllje me ngjitës.', variants: v(['26', '28', '30', '32', '34'].map((size) => ({ size, color: 'Rozë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 38 } },
   ].map((p) => ({ _id: id(), slug: slugify(p.name), active: true, featured: false, compareAtPrice: undefined, createdAt: new Date().toISOString(), ...p }));
 
-  const db = { products, orders: [], shipments: [], seq: 1000, settings: { homeBanner: { url: '', posterUrl: '', link: '' } }, subscribers: [] };
+  const db = { products, orders: [], shipments: [], seq: 1000, settings: clone(DEFAULT_SETTINGS), subscribers: [] };
   const day = 86400000;
   const mk = (name, phone, city, lines, status, ago, extra = {}) => {
     const order = buildOrder(db, { customer: { name, phone, city, address: 'Rruga e Kavajës 45, kati 2', note: '' }, items: lines }, true);
@@ -91,12 +97,18 @@ function buildOrder(db, input, seeding = false) {
     return { _id: id(), product: p._id, variantId: variant?._id, name: p.name, image: p.images[0] || '', size: variant?.size || '', color: variant?.color || '', quantity: raw.quantity, unitPrice: p.price, fromLocalStock };
   });
   const subtotal = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
-  const shippingFee = subtotal >= FREE_FROM ? 0 : SHIPPING_FEE;
+  const sh = (db.settings || DEFAULT_SETTINGS).shipping;
+  const shippingFee = sh.freeFrom > 0 && subtotal >= sh.freeFrom ? 0 : sh.fee;
+  const paymentMethod = seeding ? 'card' : input.paymentMethod === 'cod' ? 'cod' : 'card';
+  const payments = (db.settings || DEFAULT_SETTINGS).payments;
+  if (!seeding && !payments[paymentMethod]) fail(400, paymentMethod === 'cod' ? 'Pagesa në dorëzim nuk pranohet' : 'Pagesa me kartë nuk pranohet');
+  const status = paymentMethod === 'card' && !seeding ? 'pa_paguar' : 'e_re';
   db.seq += 1;
   return {
     _id: id(), number: `PA-${db.seq}`, customer: { name: c.name.trim(), phone, city: c.city, address: c.address.trim(), note: String(c.note || '') },
-    items, subtotal, shippingFee, total: subtotal + shippingFee, paymentMethod: 'cod', paid: false, status: 'e_re',
-    statusHistory: [{ status: 'e_re', at: new Date().toISOString(), by: 'klienti', note: '' }],
+    items, subtotal, shippingFee, total: subtotal + shippingFee, paymentMethod, paid: seeding, status,
+    payment: { reference: paymentMethod === 'card' ? `test_${id()}` : '' },
+    statusHistory: [{ status, at: new Date().toISOString(), by: 'klienti', note: '' }],
     costs: { purchaseCny: 0, cargoAll: 0, deliveryAll: 0 }, courierTracking: '', internalNote: '', createdAt: new Date().toISOString(),
   };
 }
@@ -152,7 +164,10 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
 
 function route(method, seg, q, body) {
   const [a, b, c, d] = seg;
-  if (a === 'config') return { homeBanner: db.settings.homeBanner, categories: CATEGORIES, genders: GENDERS, shippingFee: SHIPPING_FEE, freeShippingFrom: FREE_FROM };
+  if (a === 'config') {
+    const { cnyToAll, ...pub } = S();
+    return { ...pub, shippingFee: pub.shipping.fee, freeShippingFrom: pub.shipping.freeFrom, categories: CATEGORIES, genders: GENDERS };
+  }
 
   if (a === 'products' && !b) {
     let list = db.products.filter((p) => p.active);
@@ -175,6 +190,16 @@ function route(method, seg, q, body) {
   if (a === 'orders' && method === 'POST') {
     const o = buildOrder(db, body);
     db.orders.unshift(o);
+    const paymentUrl = o.status === 'pa_paguar' ? `/pagesa?${new URLSearchParams({ nr: o.number, ref: o.payment.reference, provova: '1' })}` : null;
+    return { order: toTracking(o), paymentUrl };
+  }
+  if (a === 'payments' && c === 'callback') {
+    const o = db.orders.find((x) => x.payment?.reference && x.payment.reference === body.reference);
+    if (!o) fail(404, 'Pagesa nuk u gjet');
+    if (!o.paid && o.status === 'pa_paguar') {
+      if (body.success === true) { o.paid = true; setStatus(o, 'e_re', 'pagesa', 'Paguar me kartë'); }
+      else setStatus(o, 'e_anuluar', 'pagesa', 'Pagesa me kartë nuk u krye');
+    }
     return { order: toTracking(o) };
   }
   if (a === 'orders' && b === 'track') {
@@ -253,7 +278,7 @@ function route(method, seg, q, body) {
         groups.set(key, g);
       }
     }
-    return { cnyToAll: CNY_TO_ALL, items: [...groups.values()] };
+    return { cnyToAll: S().cnyToAll, items: [...groups.values()] };
   }
 
   if (b === 'shipments') {
@@ -299,19 +324,40 @@ function route(method, seg, q, body) {
   if (b === 'settings') {
     if (method === 'PUT') {
       const ok = (u, rel) => !u || /^https?:\/\//i.test(u) || (rel && u.startsWith('/') && !u.startsWith('//'));
-      const hb = body.homeBanner || {};
-      if (!ok(hb.url) || !ok(hb.posterUrl)) fail(400, 'Linku duhet të fillojë me https://');
-      if (!ok(hb.link, true)) fail(400, 'Linku kur shtypet duhet të fillojë me https:// ose /');
-      db.settings.homeBanner = { url: (hb.url || '').trim(), posterUrl: (hb.posterUrl || '').trim(), link: (hb.link || '').trim() };
+      if (body.homeBanner) {
+        const hb = body.homeBanner;
+        if (!ok(hb.url) || !ok(hb.posterUrl)) fail(400, 'Linku duhet të fillojë me https://');
+        if (!ok(hb.link, true)) fail(400, 'Linku kur shtypet duhet të fillojë me https:// ose /');
+        S().homeBanner = { url: (hb.url || '').trim(), posterUrl: (hb.posterUrl || '').trim(), link: (hb.link || '').trim() };
+      }
+      if (body.promoBar) S().promoBar = { enabled: Boolean(body.promoBar.enabled), text: String(body.promoBar.text || '').trim() };
+      if (body.shipping) {
+        const sh = body.shipping;
+        if (![sh.fee, sh.freeFrom].every((n) => Number.isFinite(Number(n)) && Number(n) >= 0)) fail(400, 'Vlerë e pavlefshme te transporti');
+        S().shipping = { fee: Math.round(sh.fee), freeFrom: Math.round(sh.freeFrom), localText: sh.localText || '1–3 ditë pune', chinaText: sh.chinaText || '10–18 ditë' };
+      }
+      if (body.payments) {
+        if (!body.payments.card && !body.payments.cod) fail(400, 'Duhet të paktën një mënyrë pagese');
+        S().payments = { card: Boolean(body.payments.card), cod: Boolean(body.payments.cod) };
+      }
+      if (body.contact) {
+        const wa = String(body.contact.whatsapp || '').replace(/\D/g, '');
+        if (wa && (wa.length < 9 || wa.length > 15)) fail(400, 'Numri i WhatsApp duhet me prefiks, p.sh. 355691234567');
+        S().contact = { whatsapp: wa, phone: String(body.contact.phone || '').trim(), email: String(body.contact.email || '').trim() };
+      }
+      if (body.cnyToAll !== undefined) {
+        if (!(Number(body.cnyToAll) > 0)) fail(400, 'Kursi i juanit nuk është i saktë');
+        S().cnyToAll = Number(body.cnyToAll);
+      }
     }
-    return { settings: db.settings };
+    return { settings: S() };
   }
   if (b === 'reports') {
     const now = new Date();
     const from = new Date(now.getFullYear(), now.getMonth(), 1);
-    const orders = db.orders.filter((o) => new Date(o.createdAt) >= from);
+    const orders = db.orders.filter((o) => new Date(o.createdAt) >= from && !(o.paymentMethod === 'card' && !o.paid && ['pa_paguar', 'e_anuluar'].includes(o.status)));
     const delivered = orders.filter((o) => o.status === 'e_dorezuar');
-    const costOf = (o) => Math.round(o.costs.purchaseCny * CNY_TO_ALL) + o.costs.cargoAll + o.costs.deliveryAll;
+    const costOf = (o) => Math.round(o.costs.purchaseCny * S().cnyToAll) + o.costs.cargoAll + o.costs.deliveryAll;
     const revenue = delivered.reduce((s, o) => s + o.total, 0);
     const costs = delivered.reduce((s, o) => s + costOf(o), 0);
     const top = new Map();

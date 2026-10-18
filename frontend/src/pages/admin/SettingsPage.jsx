@@ -1,0 +1,138 @@
+import { useEffect, useState } from 'react';
+import { api } from '../../lib/api';
+import { useConfig } from '../../context/ConfigContext';
+import HomeBanner, { isVideo } from '../../components/HomeBanner';
+import { lek } from '../../lib/format';
+
+// Each card saves only its own section, so one mistake doesn't block the rest.
+function SectionCard({ title, hint, children, onSave, busy, msg }) {
+  return (
+    <section className="card form">
+      <h3>{title}</h3>
+      {hint && <p className="muted small">{hint}</p>}
+      {children}
+      <div className="row">
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={onSave}>Ruaj</button>
+        {msg && <span className={`small ${msg.error ? 'form-error' : ''}`}>{msg.text}</span>}
+      </div>
+    </section>
+  );
+}
+
+export default function SettingsPage() {
+  const { reload } = useConfig();
+  const [s, setS] = useState(null);
+  const [busy, setBusy] = useState('');
+  const [msgs, setMsgs] = useState({});
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    api('/admin/settings', { auth: true }).then(({ settings }) => setS(settings)).catch((e) => setLoadError(e.message));
+  }, []);
+
+  if (!s) return loadError ? <div className="alert alert-error">{loadError}</div> : <p className="muted">Duke u ngarkuar…</p>;
+
+  const field = (section, key, transform = (v) => v) => (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : transform(e.target.value);
+    setS((prev) => ({ ...prev, [section]: { ...prev[section], [key]: value } }));
+  };
+
+  const save = async (section, body) => {
+    setBusy(section);
+    setMsgs((m) => ({ ...m, [section]: null }));
+    try {
+      const { settings } = await api('/admin/settings', { method: 'PUT', auth: true, body });
+      setS(settings);
+      reload();
+      setMsgs((m) => ({ ...m, [section]: { text: 'U ruajt ✓' } }));
+    } catch (err) {
+      setMsgs((m) => ({ ...m, [section]: { text: err.message, error: true } }));
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const banner = s.homeBanner;
+
+  return (
+    <div className="form">
+      <h1 className="admin-title">Cilësimet e dyqanit</h1>
+      <p className="muted small">Çdo ndryshim duket menjëherë në dyqan pasi shtyp "Ruaj".</p>
+
+      <SectionCard
+        title="Shiriti nën kokën e faqes"
+        hint="Teksti i shkurtër që shfaqet nën PANDA në çdo faqe, p.sh. oferta e javës."
+        busy={busy === 'promoBar'} msg={msgs.promoBar}
+        onSave={() => save('promoBar', { promoBar: s.promoBar })}
+      >
+        <label className="check"><input id="promo-enabled" type="checkbox" checked={s.promoBar.enabled} onChange={field('promoBar', 'enabled')} /> Shfaqe shiritin</label>
+        <label>Teksti<input id="promo-text" maxLength={160} value={s.promoBar.text} onChange={field('promoBar', 'text')} /></label>
+        {s.promoBar.enabled && s.promoBar.text && <div className="promo-bar">{s.promoBar.text}</div>}
+      </SectionCard>
+
+      <SectionCard
+        title="Video ose foto në kryefaqe"
+        hint="Ngjit linkun e videos (.mp4) ose të fotos. Videoja luhet vetë, pa zë. Për telefon përdor video vertikale (4:5), nën 10 MB. Lëre bosh që të mos shfaqet asgjë."
+        busy={busy === 'homeBanner'} msg={msgs.homeBanner}
+        onSave={() => save('homeBanner', { homeBanner: banner })}
+      >
+        <label>Linku i videos ose fotos<input id="banner-url" value={banner.url} onChange={field('homeBanner', 'url')} placeholder="https://…/koleksioni.mp4" /></label>
+        {isVideo(banner.url) && (
+          <label>Foto derisa ngarkohet videoja (opsionale)<input id="banner-poster" value={banner.posterUrl} onChange={field('homeBanner', 'posterUrl')} placeholder="https://…/kopertina.jpg" /></label>
+        )}
+        <label>Ku të shkojë kur e shtypin (opsionale)<input id="banner-link" value={banner.link} onChange={field('homeBanner', 'link')} placeholder="/dyqani?oferta=1" /></label>
+        <div className="banner-preview">
+          {banner.url ? <HomeBanner banner={banner} /> : <span className="muted small">Pa video: kryefaqja fillon direkt me kategoritë.</span>}
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Transporti dhe dorëzimi"
+        busy={busy === 'shipping'} msg={msgs.shipping}
+        onSave={() => save('shipping', { shipping: s.shipping })}
+      >
+        <div className="form-row">
+          <label>Kosto e transportit (L)<input id="ship-fee" type="number" min="0" value={s.shipping.fee} onChange={field('shipping', 'fee', Number)} /></label>
+          <label>Transport falas mbi (L)<input id="ship-free" type="number" min="0" value={s.shipping.freeFrom} onChange={field('shipping', 'freeFrom', Number)} /></label>
+        </div>
+        <p className="muted small">{s.shipping.freeFrom > 0 ? `Porositë mbi ${lek(s.shipping.freeFrom)} nuk paguajnë transport.` : 'Me 0, transporti nuk është kurrë falas.'}</p>
+        <div className="form-row">
+          <label>Koha kur produkti është në Shqipëri<input id="ship-local" value={s.shipping.localText} onChange={field('shipping', 'localText')} placeholder="1–3 ditë pune" /></label>
+          <label>Koha kur vjen nga Kina<input id="ship-china" value={s.shipping.chinaText} onChange={field('shipping', 'chinaText')} placeholder="10–18 ditë" /></label>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Pagesat"
+        hint="Me kartë klienti paguan para se ta porositësh nga Kina. Pagesën në dorëzim mund ta ndezësh nëse do, p.sh. për produktet që i ke në stok."
+        busy={busy === 'payments'} msg={msgs.payments}
+        onSave={() => save('payments', { payments: s.payments })}
+      >
+        <label className="check"><input id="pay-card-on" type="checkbox" checked={s.payments.card} onChange={field('payments', 'card')} /> Pagesë me kartë</label>
+        <label className="check"><input id="pay-cod-on" type="checkbox" checked={s.payments.cod} onChange={field('payments', 'cod')} /> Pagesë në dorëzim (cash)</label>
+      </SectionCard>
+
+      <SectionCard
+        title="Kontakti"
+        hint="Shfaqen te fundi i faqes. WhatsApp-i shfaq edhe butonin e gjelbër në çdo faqe."
+        busy={busy === 'contact'} msg={msgs.contact}
+        onSave={() => save('contact', { contact: s.contact })}
+      >
+        <div className="form-row">
+          <label>WhatsApp (me 355)<input id="contact-wa" inputMode="tel" value={s.contact.whatsapp} onChange={field('contact', 'whatsapp')} placeholder="355691234567" /></label>
+          <label>Telefoni<input id="contact-phone" inputMode="tel" value={s.contact.phone} onChange={field('contact', 'phone')} placeholder="069 123 4567" /></label>
+        </div>
+        <label>Email<input id="contact-email" type="email" value={s.contact.email} onChange={field('contact', 'email')} placeholder="info@panda.al" /></label>
+      </SectionCard>
+
+      <SectionCard
+        title="Kursi i juanit"
+        hint="Përdoret për të llogaritur koston e blerjes në Kinë dhe fitimin. Klientët nuk e shohin."
+        busy={busy === 'cnyToAll'} msg={msgs.cnyToAll}
+        onSave={() => save('cnyToAll', { cnyToAll: s.cnyToAll })}
+      >
+        <label>1 juan (¥) = sa lekë<input id="cny-rate" type="number" min="0" step="0.01" value={s.cnyToAll} onChange={(e) => setS((prev) => ({ ...prev, cnyToAll: Number(e.target.value) }))} /></label>
+      </SectionCard>
+    </div>
+  );
+}

@@ -8,14 +8,12 @@ import DemoBar from './DemoBar';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useConfig } from '../context/ConfigContext';
-import { lek } from '../lib/format';
-
-const WHATSAPP = import.meta.env.VITE_WHATSAPP;
 
 export default function ShopLayout() {
   const { count } = useCart();
   const { count: savedCount } = useWishlist();
-  const { freeShippingFrom } = useConfig();
+  const { promoBar, contact } = useConfig();
+  const whatsapp = contact.whatsapp || import.meta.env.VITE_WHATSAPP;
   const { pathname, search } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -46,7 +44,6 @@ export default function ShopLayout() {
   return (
     <div className="shop">
       <DemoBar />
-      <div className="promo-bar">Transport falas mbi {lek(freeShippingFrom)} · Pagesë në dorëzim në gjithë Shqipërinë</div>
       <header className="shop-header" ref={headerRef}>
         <div className="container shop-header-inner">
           <div className="header-side">
@@ -73,6 +70,7 @@ export default function ShopLayout() {
           </div>
         </div>
       </header>
+      {promoBar.enabled && promoBar.text && <div className="promo-bar">{promoBar.text}</div>}
       <MenuDrawer open={menuOpen} onClose={closeMenu} top={menuTop} />
       <SearchOverlay open={searchOpen} onClose={closeSearch} />
 
@@ -82,8 +80,8 @@ export default function ShopLayout() {
 
       <SiteFooter />
 
-      {WHATSAPP && (
-        <a className="wa-float" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer" aria-label="Na shkruani në WhatsApp">
+      {whatsapp && (
+        <a className="wa-float" href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer" aria-label="Na shkruani në WhatsApp">
           <Icon name="whatsapp" size={26} />
         </a>
       )}

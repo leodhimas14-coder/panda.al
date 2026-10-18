@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const { HttpError } = require('../middleware/errorHandler');
 const { setOrderStatus } = require('../services/order.service');
-const { ORDER_STATUSES, keys, settings } = require('../config/constants');
+const { ORDER_STATUSES, keys } = require('../config/constants');
+const { getShopSettings } = require('../services/settings.service');
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -71,7 +72,7 @@ async function purchaseList(_req, res) {
     { $sort: { name: 1 } },
   ]);
 
-  const { cnyToAll } = settings();
+  const { cnyToAll } = await getShopSettings();
   res.json({
     cnyToAll,
     items: rows.map((r) => ({

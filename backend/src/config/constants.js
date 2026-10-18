@@ -19,6 +19,8 @@ const GENDERS = [
 
 // Order lifecycle, in the order an order normally moves through it.
 const ORDER_STATUSES = [
+  // Card orders wait here until the payment provider confirms the payment.
+  { key: 'pa_paguar', label: 'Pret pagesën' },
   { key: 'e_re', label: 'Porosi e re' },
   { key: 'e_konfirmuar', label: 'E konfirmuar' },
   { key: 'e_blere', label: 'Blerë te furnitori' },
@@ -43,17 +45,9 @@ const SHIPMENT_TO_ORDER_STATUS = {
 };
 
 const PAYMENT_METHODS = [
+  { key: 'card', label: 'Kartë' },
   { key: 'cod', label: 'Pagesë në dorëzim' },
-  { key: 'bank', label: 'Transfertë bankare' },
 ];
-
-function settings() {
-  return {
-    shippingFee: Number(process.env.SHIPPING_FEE ?? 300),
-    freeShippingFrom: Number(process.env.FREE_SHIPPING_FROM ?? 6000),
-    cnyToAll: Number(process.env.CNY_TO_ALL ?? 13),
-  };
-}
 
 const keys = (list) => list.map((x) => x.key);
 
@@ -64,6 +58,5 @@ module.exports = {
   SHIPMENT_STATUSES,
   SHIPMENT_TO_ORDER_STATUS,
   PAYMENT_METHODS,
-  settings,
   keys,
 };

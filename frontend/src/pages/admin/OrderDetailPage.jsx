@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useApi } from '../../lib/useApi';
-import { lek, dateTime, STATUS_LABEL, STATUS_FLOW } from '../../lib/format';
+import { lek, dateTime, STATUS_LABEL, STATUS_FLOW, ORDER_ACTIONS } from '../../lib/format';
 import ConfirmButton from '../../components/ConfirmButton';
 
 const waLink = (phone) => `https://wa.me/${phone.replace(/\D/g, '')}`;
@@ -54,9 +54,12 @@ export default function OrderDetailPage() {
 
   // Orders fully covered by Albania stock go straight from confirmed to the courier.
   const allLocal = order.items.every((i) => i.fromLocalStock);
-  const nextStatus = allLocal && order.status === 'e_konfirmuar'
-    ? 'ne_dorezim'
-    : STATUS_FLOW[STATUS_FLOW.indexOf(order.status) + 1];
+  const action = allLocal && order.status === 'e_konfirmuar'
+    ? { label: 'Iu dha korrierit', to: 'ne_dorezim' }
+    : ORDER_ACTIONS[order.status];
+  const open = !['e_anuluar', 'e_dorezuar'].includes(order.status);
+  const steps = allLocal ? ['e_re', 'e_konfirmuar', 'ne_dorezim', 'e_dorezuar'] : STATUS_FLOW;
+  const currentStep = steps.indexOf(order.status);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   return (
@@ -67,6 +70,59 @@ export default function OrderDetailPage() {
         <span className={`pill status-${order.status}`}>{STATUS_LABEL[order.status]}</span>
       </div>
 
+      <section className="card next-step">
+        <div className="next-step-head">
+          <h3>{open ? 'Hapi tjetër' : 'Statusi'}</h3>
+          {order.paid
+            ? <span className="pill status-e_dorezuar">{order.paymentMethod === 'card' ? '💳 Paguar me kartë' : 'Paguar'}</span>
+            : <span className="pill status-e_re">{order.paymentMethod === 'cod' ? 'Paguhet në dorëzim' : 'Pa paguar'}</span>}
+        </div>
+
+        {order.status !== 'e_anuluar' && order.status !== 'pa_paguar' && (
+          <ol className="stepper">
+            {steps.map((st, i) => (
+              <li key={st} className={`${i < currentStep ? 'done' : ''} ${i === currentStep ? 'current' : ''}`}>
+                <span className="dot" />{STATUS_LABEL[st]}
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {open && (
+          <div className="next-step-actions">
+            {action && (
+              <button type="button" className="btn btn-primary btn-lg" disabled={busy} onClick={() => save({ status: action.to })}>{action.label}</button>
+            )}
+            {order.status === 'ne_magazine' && !order.shipment && (
+              <Link to="/admin/dergesat" className="btn btn-outline btn-lg">Shtoje në një dërgesë kargo</Link>
+            )}
+            <ConfirmButton
+              className="btn btn-danger-ghost btn-lg"
+              disabled={busy}
+              onConfirm={() => save({ status: 'e_anuluar' })}
+              confirmText={order.paid ? 'Po, refuzoje (ktheji paratë në kartë)' : 'Po, refuzoje porosinë'}
+            >
+              {order.status === 'e_re' ? '✕ Refuzo' : 'Anulo porosinë'}
+            </ConfirmButton>
+          </div>
+        )}
+        {order.status === 'pa_paguar' && <p className="muted small">Klienti nuk e ka përfunduar pagesën me kartë. Nëse nuk paguan brenda 1 ore, porosia anulohet vetë.</p>}
+        {order.status === 'e_anuluar' && order.paid && <p className="small"><b>Kjo porosi ishte paguar.</b> Kthejini paratë klientit nga paneli i bankës.</p>}
+        {allLocal && open && <p className="muted small">Të gjithë artikujt janë në stok në Shqipëri, kështu që kjo porosi nuk kalon nga Kina.</p>}
+        {order.shipment && <p className="small">Dërgesa: <Link to={`/admin/dergesat/${order.shipment._id}`}>{order.shipment.code}</Link></p>}
+
+        {open && (
+          <details className="manual-status">
+            <summary>Ndrysho statusin me dorë</summary>
+            <select value="" onChange={(e) => e.target.value && save({ status: e.target.value })} disabled={busy} aria-label="Zgjidh statusin">
+              <option value="">Zgjidh statusin…</option>
+              {STATUS_FLOW.map((st) => <option key={st} value={st}>{STATUS_LABEL[st]}</option>)}
+            </select>
+          </details>
+        )}
+        {msg && <p className="small">{msg}</p>}
+      </section>
+
       <div className="admin-grid">
         <section className="card">
           <h3>Klienti</h3>
@@ -74,29 +130,17 @@ export default function OrderDetailPage() {
           <p><a href={`tel:${order.customer.phone}`}>{order.customer.phone}</a> · <a href={waLink(order.customer.phone)} target="_blank" rel="noreferrer">WhatsApp</a></p>
           <p>{order.customer.city}, {order.customer.address}</p>
           {order.customer.note && <p className="note">“{order.customer.note}”</p>}
-          <p className="muted small">Pagesa: {order.paymentMethod === 'cod' ? 'në dorëzim' : 'bankë'} · {order.paid ? 'e paguar' : 'e papaguar'}</p>
         </section>
 
         <section className="card">
-          <h3>Statusi</h3>
-          {order.status !== 'e_anuluar' && order.status !== 'e_dorezuar' && (
-            <div className="stack">
-              {nextStatus && <button type="button" className="btn btn-primary btn-block" disabled={busy} onClick={() => save({ status: nextStatus })}>→ {STATUS_LABEL[nextStatus]}</button>}
-              <select value="" onChange={(e) => e.target.value && save({ status: e.target.value })} disabled={busy}>
-                <option value="">Ndrysho në…</option>
-                {STATUS_FLOW.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-              </select>
-              <ConfirmButton className="btn btn-danger-ghost btn-block" disabled={busy} onConfirm={() => save({ status: 'e_anuluar' })} confirmText="Po, anuloje porosinë">Anulo porosinë</ConfirmButton>
-            </div>
-          )}
-          {allLocal && <p className="muted small">Të gjithë artikujt janë në stok në Shqipëri: kjo porosi nuk kalon nga Kina.</p>}
-          {order.shipment && <p className="small">Dërgesa: <Link to={`/admin/dergesat/${order.shipment._id}`}>{order.shipment.code}</Link></p>}
+          <h3>Historiku</h3>
           <ul className="history">
             {[...order.statusHistory].reverse().map((h, i) => (
               <li key={i}><b>{STATUS_LABEL[h.status]}</b> <span className="muted small">{dateTime(h.at)}{h.by ? ` · ${h.by}` : ''}{h.note ? ` · ${h.note}` : ''}</span></li>
             ))}
           </ul>
         </section>
+
       </div>
 
       <section className="card">

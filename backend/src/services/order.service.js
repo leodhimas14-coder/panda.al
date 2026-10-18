@@ -3,7 +3,9 @@ const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Counter = require('../models/Counter');
 const { HttpError } = require('../middleware/errorHandler');
-const { settings } = require('../config/constants');
+const { getShopSettings } = require('../services/settings.service');
+const { getProvider } = require('./payment.service');
+const { notifyOwner, formatNewOrder } = require('./notify.service');
 
 const MAX_ITEMS = 30;
 const MAX_QTY = 20;
@@ -41,7 +43,13 @@ async function createOrder(input) {
   if (rawItems.length === 0) throw new HttpError(400, 'Shporta është bosh');
   if (rawItems.length > MAX_ITEMS) throw new HttpError(400, 'Shumë artikuj në një porosi');
 
-  const paymentMethod = input?.paymentMethod === 'bank' ? 'bank' : 'cod';
+  const shop = await getShopSettings();
+  const paymentMethod = input?.paymentMethod === 'cod' ? 'cod' : 'card';
+  if (!shop.payments[paymentMethod]) {
+    throw new HttpError(400, paymentMethod === 'cod' ? 'Pagesa në dorëzim nuk pranohet' : 'Pagesa me kartë nuk pranohet');
+  }
+  // Fail before touching stock if card payments can't be taken right now.
+  const provider = paymentMethod === 'card' ? getProvider() : null;
 
   const reserved = []; // [{ productId, variantId, quantity }] to roll back on failure
   try {
@@ -87,12 +95,13 @@ async function createOrder(input) {
       });
     }
 
-    const { shippingFee, freeShippingFrom } = settings();
     const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-    const fee = subtotal >= freeShippingFrom ? 0 : shippingFee;
+    const fee = shop.shipping.freeFrom > 0 && subtotal >= shop.shipping.freeFrom ? 0 : shop.shipping.fee;
     const seq = await Counter.next('order');
 
-    return await Order.create({
+    // Card orders stay hidden from the "new orders" list until they are paid.
+    const status = paymentMethod === 'card' ? 'pa_paguar' : 'e_re';
+    const order = await Order.create({
       number: `PA-${seq}`,
       customer,
       items,
@@ -100,9 +109,18 @@ async function createOrder(input) {
       shippingFee: fee,
       total: subtotal + fee,
       paymentMethod,
-      status: 'e_re',
-      statusHistory: [{ status: 'e_re', by: 'klienti' }],
+      status,
+      statusHistory: [{ status, by: 'klienti' }],
     });
+
+    if (provider) {
+      const { reference, redirectUrl } = await provider.createPayment(order);
+      order.payment = { provider: provider.name, reference };
+      await order.save();
+      return { order, paymentUrl: redirectUrl };
+    }
+    notifyOwner(formatNewOrder(order));
+    return { order, paymentUrl: null };
   } catch (err) {
     await restoreStock(reserved);
     throw err;
@@ -138,4 +156,29 @@ async function setOrderStatus(order, status, by, note = '') {
   return order.save();
 }
 
-module.exports = { createOrder, setOrderStatus, normalizePhone };
+/** Called when the payment provider confirms (or rejects) a card payment. */
+async function applyPaymentResult(reference, paid) {
+  const order = reference && (await Order.findOne({ 'payment.reference': reference }));
+  if (!order) throw new HttpError(404, 'Pagesa nuk u gjet');
+  if (order.paid || order.status !== 'pa_paguar') return order; // already handled
+
+  if (paid) {
+    order.paid = true;
+    order.payment.paidAt = new Date();
+    await setOrderStatus(order, 'e_re', 'pagesa', 'Paguar me kartë');
+    notifyOwner(formatNewOrder(order));
+  } else {
+    await setOrderStatus(order, 'e_anuluar', 'pagesa', 'Pagesa me kartë nuk u krye');
+  }
+  return order;
+}
+
+/** Cancels card orders left unpaid for too long and puts their stock back. */
+async function expireUnpaidOrders(maxAgeMinutes = 60) {
+  const cutoff = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
+  const stale = await Order.find({ status: 'pa_paguar', createdAt: { $lt: cutoff } });
+  for (const order of stale) await setOrderStatus(order, 'e_anuluar', 'sistemi', 'Pagesa nuk u krye në kohë');
+  return stale.length;
+}
+
+module.exports = { createOrder, setOrderStatus, applyPaymentResult, expireUnpaidOrders, normalizePhone };

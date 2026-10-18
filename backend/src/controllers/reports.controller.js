@@ -1,5 +1,5 @@
 const Order = require('../models/Order');
-const { settings } = require('../config/constants');
+const { getShopSettings } = require('../services/settings.service');
 
 /**
  * Sales and profit for a date range (default: current month). Profit only
@@ -9,9 +9,13 @@ async function summary(req, res) {
   const now = new Date();
   const from = req.query.from ? new Date(req.query.from) : new Date(now.getFullYear(), now.getMonth(), 1);
   const to = req.query.to ? new Date(req.query.to) : now;
-  const { cnyToAll } = settings();
+  const { cnyToAll } = await getShopSettings();
 
-  const orders = await Order.find({ createdAt: { $gte: from, $lte: to } });
+  // Card checkouts that were never paid are not sales (cancelled or still waiting).
+  const orders = await Order.find({
+    createdAt: { $gte: from, $lte: to },
+    $nor: [{ paymentMethod: 'card', paid: false, status: { $in: ['pa_paguar', 'e_anuluar'] } }],
+  });
   const delivered = orders.filter((o) => o.status === 'e_dorezuar');
   const active = orders.filter((o) => !['e_dorezuar', 'e_anuluar'].includes(o.status));
 

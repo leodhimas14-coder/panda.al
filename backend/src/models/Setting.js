@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-// One document holding shop settings the owner edits from the admin panel.
+// One document holding everything the owner can change from Admin → Cilësimet.
+// Empty/missing values fall back to the defaults in services/settings.service.js.
 const settingSchema = new mongoose.Schema(
   {
     _id: { type: String, default: 'shop' },
@@ -10,12 +11,28 @@ const settingSchema = new mongoose.Schema(
       posterUrl: { type: String, trim: true, default: '' }, // image shown while the video loads
       link: { type: String, trim: true, default: '' }, // where a tap goes, e.g. /dyqani?oferta=1
     },
+    promoBar: {
+      enabled: { type: Boolean },
+      text: { type: String, trim: true },
+    },
+    shipping: {
+      fee: { type: Number, min: 0 }, // lekë
+      freeFrom: { type: Number, min: 0 }, // free shipping at or above this subtotal; 0 = never free
+      localText: { type: String, trim: true }, // delivery time for items in Albania stock
+      chinaText: { type: String, trim: true }, // delivery time for items ordered from China
+    },
+    payments: {
+      card: { type: Boolean },
+      cod: { type: Boolean },
+    },
+    contact: {
+      whatsapp: { type: String, trim: true },
+      phone: { type: String, trim: true },
+      email: { type: String, trim: true },
+    },
+    cnyToAll: { type: Number, min: 0 },
   },
-  { timestamps: true }
+  { timestamps: true, minimize: false }
 );
-
-settingSchema.statics.get = async function get() {
-  return (await this.findById('shop')) || new this({ _id: 'shop' });
-};
 
 module.exports = mongoose.model('Setting', settingSchema);

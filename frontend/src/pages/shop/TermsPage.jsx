@@ -17,7 +17,7 @@ export default function TermsPage() {
       <p>Shporta, produktet e ruajtura dhe adresa për porosinë e radhës ruhen vetëm në shfletuesin e telefonit tënd. Nuk përdorim cookies reklamash.</p>
 
       <h3>Porositë dhe pagesa</h3>
-      <p>Çmimet janë në lekë dhe përfshijnë TVSH-në. Pagesa bëhet në dorëzim. Porosinë mund ta anulosh pa kosto deri sa të niset.</p>
+      <p>Çmimet janë në lekë dhe përfshijnë TVSH-në. Pagesa bëhet me kartë në momentin e porosisë, përmes faqes së sigurt të bankës; ne nuk i shohim dhe nuk i ruajmë të dhënat e kartës. Nëse e anulon porosinë para se të blihet produkti, të kthejmë paratë në kartë.</p>
 
       <h3>Kthimet</h3>
       <p>Masën mund ta ndërrosh brenda 7 ditëve nga marrja, me produktin të papërdorur dhe me etiketa. Nëse produkti vjen i dëmtuar, na dërgo foto brenda 48 orëve.</p>

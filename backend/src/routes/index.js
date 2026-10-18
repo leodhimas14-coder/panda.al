@@ -28,6 +28,7 @@ router.get('/config', h(shop.config));
 router.get('/products', h(shop.listProducts));
 router.get('/products/:slug', h(shop.getProduct));
 router.post('/orders', limiter(20), h(shop.placeOrder));
+router.post('/payments/:provider/callback', limiter(60), h(shop.paymentCallback));
 router.get('/orders/track/:number', limiter(60), h(shop.trackOrder));
 router.post('/newsletter', limiter(10), h(newsletter.subscribe));
 

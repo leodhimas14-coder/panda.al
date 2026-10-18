@@ -15,6 +15,13 @@ export default function DashboardPage() {
     <div>
       <h1 className="admin-title">Mirë se erdhe, {user.name}</h1>
 
+      {counts.e_re > 0 && (
+        <Link to="/admin/porosite?status=e_re" className="attention">
+          <strong>{counts.e_re} {counts.e_re === 1 ? 'porosi e re pret' : 'porosi të reja presin'} të pranohen</strong>
+          <span>Shiko dhe prano →</span>
+        </Link>
+      )}
+
       {isAdmin && r && (
         <>
           <p className="muted small">Ky muaj · fitimi llogaritet vetëm nga porositë e dorëzuara</p>
