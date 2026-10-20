@@ -43,6 +43,11 @@ async function update(req, res) {
 
   if (body.status !== undefined) {
     if (!keys(ORDER_STATUSES).includes(body.status)) throw new HttpError(400, 'Status i pavlefshëm');
+    // Moving a waiting order on by hand means the money arrived (e.g. a bank transfer).
+    if (order.status === 'pa_paguar' && body.status !== 'e_anuluar') {
+      order.paid = true;
+      order.payment.paidAt = new Date();
+    }
     await setOrderStatus(order, body.status, req.user.name, String(body.note || ''));
   }
   res.json({ order });

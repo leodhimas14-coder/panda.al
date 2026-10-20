@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { lek, date } from '../../lib/format';
 import StatusTimeline from '../../components/StatusTimeline';
+import BankDetails from '../../components/BankDetails';
+import { useConfig } from '../../context/ConfigContext';
 
 export default function TrackPage() {
   const [params, setParams] = useSearchParams();
@@ -11,6 +13,7 @@ export default function TrackPage() {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { bank } = useConfig();
 
   const lookup = async (nr, tel) => {
     setLoading(true);
@@ -54,6 +57,7 @@ export default function TrackPage() {
             <div className="right"><span className="muted small">Data</span><strong>{date(order.createdAt)}</strong></div>
           </div>
           <StatusTimeline order={order} />
+          {order.status === 'pa_paguar' && order.paymentMethod === 'bank' && <BankDetails bank={bank} order={order} />}
           {order.courierTracking && <p className="small">Kodi i korrierit: <b>{order.courierTracking}</b></p>}
           <div className="summary">
             {order.items.map((i, idx) => (

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { CATEGORY_LABEL, GENDER_LABEL, lek } from '../../lib/format';
+import UploadButton from '../../components/UploadButton';
 
 const EMPTY = {
-  name: '', category: 'rroba', gender: 'unisex', description: '', images: [''], price: '', compareAtPrice: '',
+  name: '', category: 'rroba', gender: 'unisex', description: '', images: [], price: '', compareAtPrice: '',
   variants: [], supplier: { name: '', url: '', costCny: '' }, featured: false, active: true,
 };
 
@@ -18,11 +19,12 @@ export default function ProductFormPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [bulk, setBulk] = useState({ sizes: '', colors: '' });
+  const [imageLink, setImageLink] = useState('');
 
   useEffect(() => {
     if (isNew) return;
     api(`/admin/products/${id}`, { auth: true })
-      .then(({ product }) => setForm({ ...EMPTY, ...product, images: product.images.length ? product.images : [''] }))
+      .then(({ product }) => setForm({ ...EMPTY, ...product }))
       .catch((e) => setError(e.message));
   }, [id, isNew]);
 
@@ -30,7 +32,15 @@ export default function ProductFormPage() {
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
   const setSupplier = (key) => (e) => setForm((f) => ({ ...f, supplier: { ...f.supplier, [key]: e.target.value } }));
-  const setImage = (i, value) => setForm((f) => ({ ...f, images: f.images.map((x, j) => (j === i ? value : x)) }));
+  const addImages = (urls) => setForm((f) => ({ ...f, images: [...f.images, ...urls] }));
+  const removeImage = (i) => setForm((f) => ({ ...f, images: f.images.filter((_, j) => j !== i) }));
+  const makeMain = (i) => setForm((f) => ({ ...f, images: [f.images[i], ...f.images.filter((_, j) => j !== i)] }));
+  const addLink = () => {
+    const url = imageLink.trim();
+    if (!/^https?:\/\//i.test(url)) return;
+    addImages([url]);
+    setImageLink('');
+  };
   const setVariant = (i, key, value) => setForm((f) => ({ ...f, variants: f.variants.map((v, j) => (j === i ? { ...v, [key]: value } : v)) }));
 
   // "S, M, L" × "E zezë, E bardhë" → one variant per combination, keeping existing stock.
@@ -101,15 +111,26 @@ export default function ProductFormPage() {
 
       <section className="card form">
         <h3>Fotot</h3>
-        <p className="muted small">Ngjitni linkun e çdo fotoje (p.sh. nga Cloudinary ose Google Drive publik). Fotoja e parë është kryesorja.</p>
-        {form.images.map((src, i) => (
-          <div className="row" key={i}>
-            {src && <img src={src} alt="" className="img-preview" />}
-            <input className="grow" value={src} onChange={(e) => setImage(i, e.target.value)} placeholder="https://…" />
-            <button type="button" className="icon-btn" onClick={() => setForm((f) => ({ ...f, images: f.images.filter((_, j) => j !== i) }))}>✕</button>
+        <p className="muted small">Ngarko fotot nga telefoni ose kompjuteri. E para është fotoja kryesore; shtyp "Kryesore" te një tjetër për ta vendosur të parën.</p>
+        {form.images.length > 0 && (
+          <div className="photo-grid">
+            {form.images.map((src, i) => (
+              <div className="photo-tile" key={`${src.slice(0, 80)}-${i}`}>
+                <img src={src} alt="" />
+                {i === 0 ? <span className="photo-main">Kryesore</span> : <button type="button" className="photo-make-main" onClick={() => makeMain(i)}>Kryesore</button>}
+                <button type="button" className="photo-remove" aria-label="Hiq foton" onClick={() => removeImage(i)}>✕</button>
+              </div>
+            ))}
           </div>
-        ))}
-        <button type="button" className="btn btn-ghost" onClick={() => setForm((f) => ({ ...f, images: [...f.images, ''] }))}>+ Shto foto</button>
+        )}
+        <UploadButton multiple label="📷 Ngarko foto" onUploaded={(files) => addImages(files.filter((f) => f.kind === 'image').map((f) => f.url))} />
+        <details className="link-alt">
+          <summary>Ose shto foto me link</summary>
+          <div className="row">
+            <input className="grow" value={imageLink} onChange={(e) => setImageLink(e.target.value)} placeholder="https://…" />
+            <button type="button" className="btn btn-ghost" onClick={addLink}>Shto</button>
+          </div>
+        </details>
       </section>
 
       <section className="card form">

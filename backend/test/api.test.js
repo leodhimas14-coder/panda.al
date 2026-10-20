@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 process.env.NODE_ENV = 'test';
+process.env.UPLOAD_DIR = require('path').join(require('os').tmpdir(), `panda-test-uploads-${process.pid}`);
 process.env.JWT_SECRET = 'test-secret';
 process.env.SHIPPING_FEE = '300';
 process.env.FREE_SHIPPING_FROM = '6000';
@@ -286,6 +287,61 @@ test('admin settings: shipping, payment methods, promo bar, contact', async () =
   await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, cod: false }, shipping: { fee: 300, freeFrom: 6000 }, cnyToAll: 13 });
   const refused = await request(app).post('/api/orders').send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
   assert.equal(refused.status, 400);
+});
+
+test('uploads: admin only, real images and videos only, served back', async () => {
+  const jpg = Buffer.concat([Buffer.from('ffd8ffe000104a464946', 'hex'), Buffer.alloc(200)]);
+  const mp4 = Buffer.concat([Buffer.from('000000186674797069736f6d', 'hex'), Buffer.alloc(200)]);
+  const html = Buffer.from('<script>alert(1)</script>');
+
+  const staff = await asStaff(request(app).post('/api/admin/uploads')).attach('files', jpg, 'a.jpg');
+  assert.equal(staff.status, 403);
+
+  const fake = await asAdmin(request(app).post('/api/admin/uploads')).attach('files', html, 'photo.jpg');
+  assert.equal(fake.status, 400, 'a renamed HTML file is refused');
+
+  const ok = await asAdmin(request(app).post('/api/admin/uploads')).attach('files', jpg, 'a.jpg').attach('files', mp4, 'v.mp4');
+  assert.equal(ok.status, 201);
+  assert.deepEqual(ok.body.files.map((f) => f.kind), ['image', 'video']);
+  assert.match(ok.body.files[0].url, /\/uploads\/[a-z0-9-]+\.jpg$/);
+
+  const served = await request(app).get(new URL(ok.body.files[0].url).pathname);
+  assert.equal(served.status, 200);
+  assert.equal(served.headers['content-type'], 'image/jpeg');
+});
+
+test('bank account: IBAN is checked; bank transfer orders wait for payment', async () => {
+  let res = await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, bank: true } });
+  assert.equal(res.status, 400, 'bank transfer needs an account first');
+
+  res = await asAdmin(request(app).put('/api/admin/settings')).send({ bank: { holder: 'Panda shpk', iban: 'AL47 2121 1009 0000 0002 3569 8742' } });
+  assert.equal(res.status, 400, 'wrong check digits');
+
+  res = await asAdmin(request(app).put('/api/admin/settings')).send({ bank: { holder: 'Panda shpk', bankName: 'BKT', iban: 'al47 2121 1009 0000 0002 3569 8741', swift: 'ncbaaltx' } });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.settings.bank.iban, 'AL47212110090000000235698741');
+  assert.equal(res.body.settings.bank.swift, 'NCBAALTX');
+
+  assert.equal((await request(app).get('/api/config')).body.bank, undefined, 'account hidden while transfer is off');
+  await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, bank: true } });
+  assert.equal((await request(app).get('/api/config')).body.bank.iban, 'AL47212110090000000235698741');
+
+  const order = await request(app).post('/api/orders').send({ customer, paymentMethod: 'bank', items: [{ productId: wallet._id, quantity: 1 }] });
+  assert.equal(order.status, 201);
+  assert.equal(order.body.order.status, 'pa_paguar');
+  assert.equal(order.body.paymentUrl, null);
+
+  // Not expired after 2 hours (transfers take time), but after 4 days.
+  await Order.collection.updateOne({ number: order.body.order.number }, { $set: { createdAt: new Date(Date.now() - 2 * 3600 * 1000) } });
+  await expireUnpaidOrders(60, 72);
+  const list = await asStaff(request(app).get(`/api/admin/orders?q=${order.body.order.number}`));
+  assert.equal(list.body.orders[0].status, 'pa_paguar');
+
+  // The owner sees the transfer and moves the order on: it counts as paid.
+  const paid = await asStaff(request(app).patch(`/api/admin/orders/${list.body.orders[0]._id}`)).send({ status: 'e_re' });
+  assert.equal(paid.body.order.paid, true);
+
+  await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, cod: false, bank: false } });
 });
 
 test('admin routes need a token', async () => {

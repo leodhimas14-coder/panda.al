@@ -49,6 +49,25 @@ te `backend/src/services/payment.service.js` (dy funksione: krijo pagesën, lexo
 Deri atëherë punon ofruesi `test`, një faqe prove pa para të vërteta.
 Në prodhim, `test` fiket vetë dhe pagesa me kartë shfaqet si e paaktivizuar.
 
+## Fotot dhe videot
+
+Te **Produktet** shtyp **📷 Ngarko foto** (mund të zgjedhësh disa njëherësh nga telefoni),
+dhe te **Cilësimet → Video** shtyp **🎬 Ngarko video ose foto**. Lejohen JPG, PNG, WEBP,
+GIF (deri 10 MB) dhe MP4, MOV, WEBM (deri 60 MB). Linket mbeten si mundësi.
+
+Online, vendos `CLOUDINARY_URL` që skedarët të mos humbasin kur rinis serveri. Pa të,
+ruhen te `UPLOAD_DIR` dhe shërbehen nga `/uploads`.
+
+## Ku vijnë paratë
+
+Te **Cilësimet → Llogaria bankare** vendos emrin, bankën, IBAN-in (kontrollohet që të jetë
+i saktë) dhe SWIFT-in.
+- **Transfertë bankare:** kur e ndez te Pagesat, klienti pas porosisë sheh IBAN-in, shumën
+  dhe numrin e porosisë për përshkrimin. Porosia pret si "Pret pagesën"; kur paratë
+  mbërrijnë, te porosia shtyp **Shëno si të paguar**. Pa pagesë anulohet pas 3 ditësh.
+- **Kartë:** paratë i kalon banka/ofruesi i kartave në llogarinë që i jep atyre në kontratë.
+  Dyqani nuk i drejton paratë vetë, prandaj jepu të njëjtin IBAN.
+
 ## Paneli i adminit
 
 - **Porositë:** butoni **✓ Prano** / **✕ Refuzo** te çdo porosi e re. Te porosia,

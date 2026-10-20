@@ -24,6 +24,15 @@ const settingSchema = new mongoose.Schema(
     payments: {
       card: { type: Boolean },
       cod: { type: Boolean },
+      bank: { type: Boolean }, // customer pays by bank transfer to the IBAN below
+    },
+    // The shop's bank account: shown to customers who pay by transfer, and the
+    // account to give the card provider for payouts.
+    bank: {
+      holder: { type: String, trim: true },
+      bankName: { type: String, trim: true },
+      iban: { type: String, trim: true },
+      swift: { type: String, trim: true },
     },
     contact: {
       whatsapp: { type: String, trim: true },

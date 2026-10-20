@@ -3,16 +3,20 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v5';
+const KEY = 'panda_demo_db_v6';
 const DEFAULT_SETTINGS = {
   homeBanner: { url: '', posterUrl: '', link: '' },
   promoBar: { enabled: true, text: 'Transport falas mbi 6.000 L · Dërgesa në gjithë Shqipërinë' },
   shipping: { fee: 300, freeFrom: 6000, localText: '1–3 ditë pune', chinaText: '10–18 ditë' },
-  payments: { card: true, cod: false },
+  payments: { card: true, cod: false, bank: false },
+  bank: { holder: '', bankName: '', iban: '', swift: '' },
   contact: { whatsapp: '', phone: '', email: '' },
   cnyToAll: 13,
 };
-const S = () => db.settings;
+const S = () => {
+  for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) if (db.settings[k] === undefined) db.settings[k] = clone(v);
+  return db.settings;
+};
 
 const CATEGORIES = [
   { key: 'rroba', label: 'Rroba' }, { key: 'kepuce', label: 'Këpucë' }, { key: 'canta', label: 'Çanta' },
@@ -99,10 +103,10 @@ function buildOrder(db, input, seeding = false) {
   const subtotal = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
   const sh = (db.settings || DEFAULT_SETTINGS).shipping;
   const shippingFee = sh.freeFrom > 0 && subtotal >= sh.freeFrom ? 0 : sh.fee;
-  const paymentMethod = seeding ? 'card' : input.paymentMethod === 'cod' ? 'cod' : 'card';
+  const paymentMethod = seeding ? 'card' : ['cod', 'bank'].includes(input.paymentMethod) ? input.paymentMethod : 'card';
   const payments = (db.settings || DEFAULT_SETTINGS).payments;
-  if (!seeding && !payments[paymentMethod]) fail(400, paymentMethod === 'cod' ? 'Pagesa në dorëzim nuk pranohet' : 'Pagesa me kartë nuk pranohet');
-  const status = paymentMethod === 'card' && !seeding ? 'pa_paguar' : 'e_re';
+  if (!seeding && !payments[paymentMethod]) fail(400, { cod: 'Pagesa në dorëzim', bank: 'Transferta bankare', card: 'Pagesa me kartë' }[paymentMethod] + ' nuk pranohet');
+  const status = paymentMethod !== 'cod' && !seeding ? 'pa_paguar' : 'e_re';
   db.seq += 1;
   return {
     _id: id(), number: `PA-${db.seq}`, customer: { name: c.name.trim(), phone, city: c.city, address: c.address.trim(), note: String(c.note || '') },
@@ -165,7 +169,8 @@ export async function demoApi(path, { method = 'GET', body } = {}) {
 function route(method, seg, q, body) {
   const [a, b, c, d] = seg;
   if (a === 'config') {
-    const { cnyToAll, ...pub } = S();
+    const { cnyToAll, bank, ...pub } = S();
+    if (pub.payments.bank) pub.bank = bank;
     return { ...pub, shippingFee: pub.shipping.fee, freeShippingFrom: pub.shipping.freeFrom, categories: CATEGORIES, genders: GENDERS };
   }
 
@@ -190,7 +195,7 @@ function route(method, seg, q, body) {
   if (a === 'orders' && method === 'POST') {
     const o = buildOrder(db, body);
     db.orders.unshift(o);
-    const paymentUrl = o.status === 'pa_paguar' ? `/pagesa?${new URLSearchParams({ nr: o.number, ref: o.payment.reference, provova: '1' })}` : null;
+    const paymentUrl = o.status === 'pa_paguar' && o.paymentMethod === 'card' ? `/pagesa?${new URLSearchParams({ nr: o.number, ref: o.payment.reference, provova: '1' })}` : null;
     return { order: toTracking(o), paymentUrl };
   }
   if (a === 'payments' && c === 'callback') {
@@ -254,7 +259,10 @@ function route(method, seg, q, body) {
     if (method === 'PATCH') {
       if (body.costs) for (const k of ['purchaseCny', 'deliveryAll']) if (body.costs[k] !== undefined) o.costs[k] = Number(body.costs[k]) || 0;
       for (const k of ['courierTracking', 'internalNote']) if (body[k] !== undefined) o[k] = String(body[k]);
-      if (body.status) setStatus(o, body.status, 'Admin', body.note || '');
+      if (body.status) {
+        if (o.status === 'pa_paguar' && body.status !== 'e_anuluar') o.paid = true;
+        setStatus(o, body.status, 'Admin', body.note || '');
+      }
     }
     const s = db.shipments.find((x) => x._id === o.shipment);
     return { order: { ...o, shipment: s ? { _id: s._id, code: s.code, status: s.status } : undefined } };
@@ -336,9 +344,23 @@ function route(method, seg, q, body) {
         if (![sh.fee, sh.freeFrom].every((n) => Number.isFinite(Number(n)) && Number(n) >= 0)) fail(400, 'Vlerë e pavlefshme te transporti');
         S().shipping = { fee: Math.round(sh.fee), freeFrom: Math.round(sh.freeFrom), localText: sh.localText || '1–3 ditë pune', chinaText: sh.chinaText || '10–18 ditë' };
       }
+      if (body.bank) {
+        const iban = String(body.bank.iban || '').replace(/\s+/g, '').toUpperCase();
+        if (iban) {
+          const digits = (iban.slice(4) + iban.slice(0, 4)).replace(/[A-Z]/g, (ch) => String(ch.charCodeAt(0) - 55));
+          let rest = 0;
+          for (const d of digits) rest = (rest * 10 + Number(d)) % 97;
+          if (!/^[A-Z]{2}\d{2}[A-Z0-9]{8,30}$/.test(iban) || (iban.startsWith('AL') && iban.length !== 28) || rest !== 1) {
+            fail(400, 'IBAN-i nuk është i saktë. Një IBAN shqiptar ka 28 shenja dhe fillon me AL.');
+          }
+        }
+        S().bank = { holder: String(body.bank.holder || '').trim(), bankName: String(body.bank.bankName || '').trim(), iban, swift: String(body.bank.swift || '').replace(/\s+/g, '').toUpperCase() };
+      }
       if (body.payments) {
-        if (!body.payments.card && !body.payments.cod) fail(400, 'Duhet të paktën një mënyrë pagese');
-        S().payments = { card: Boolean(body.payments.card), cod: Boolean(body.payments.cod) };
+        const p2 = { card: Boolean(body.payments.card), cod: Boolean(body.payments.cod), bank: Boolean(body.payments.bank) };
+        if (!p2.card && !p2.cod && !p2.bank) fail(400, 'Duhet të paktën një mënyrë pagese');
+        if (p2.bank && !(S().bank?.iban && S().bank?.holder)) fail(400, 'Për transfertën bankare, plotëso më parë llogarinë bankare (emri dhe IBAN-i).');
+        S().payments = p2;
       }
       if (body.contact) {
         const wa = String(body.contact.whatsapp || '').replace(/\D/g, '');

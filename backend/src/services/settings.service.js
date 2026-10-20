@@ -11,7 +11,8 @@ function defaults() {
       localText: '1–3 ditë pune',
       chinaText: '10–18 ditë',
     },
-    payments: { card: true, cod: false },
+    payments: { card: true, cod: false, bank: false },
+    bank: { holder: '', bankName: '', iban: '', swift: '' },
     contact: { whatsapp: process.env.WHATSAPP || '', phone: '', email: '' },
     cnyToAll: Number(process.env.CNY_TO_ALL ?? 13),
   };
@@ -37,10 +38,11 @@ async function getShopSettings() {
   return out;
 }
 
-/** What the public shop is allowed to see (no exchange rate). */
+/** What the public shop is allowed to see: no exchange rate, and the bank
+ * account only while bank transfer is offered to customers. */
 function publicSettings(s) {
-  const { cnyToAll, ...rest } = s;
-  return rest;
+  const { cnyToAll, bank, ...rest } = s;
+  return s.payments.bank ? { ...rest, bank } : rest;
 }
 
 module.exports = { getShopSettings, publicSettings, defaults };

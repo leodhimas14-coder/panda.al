@@ -14,7 +14,7 @@ async function summary(req, res) {
   // Card checkouts that were never paid are not sales (cancelled or still waiting).
   const orders = await Order.find({
     createdAt: { $gte: from, $lte: to },
-    $nor: [{ paymentMethod: 'card', paid: false, status: { $in: ['pa_paguar', 'e_anuluar'] } }],
+    $nor: [{ paymentMethod: { $in: ['card', 'bank'] }, paid: false, status: { $in: ['pa_paguar', 'e_anuluar'] } }],
   });
   const delivered = orders.filter((o) => o.status === 'e_dorezuar');
   const active = orders.filter((o) => !['e_dorezuar', 'e_anuluar'].includes(o.status));

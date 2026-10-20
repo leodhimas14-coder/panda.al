@@ -47,6 +47,7 @@ const SHIPMENT_TO_ORDER_STATUS = {
 const PAYMENT_METHODS = [
   { key: 'card', label: 'Kartë' },
   { key: 'cod', label: 'Pagesë në dorëzim' },
+  { key: 'bank', label: 'Transfertë bankare' },
 ];
 
 const keys = (list) => list.map((x) => x.key);

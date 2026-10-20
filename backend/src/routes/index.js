@@ -10,6 +10,7 @@ const shipments = require('../controllers/shipments.controller');
 const reports = require('../controllers/reports.controller');
 const settings = require('../controllers/settings.controller');
 const newsletter = require('../controllers/newsletter.controller');
+const uploads = require('../controllers/uploads.controller');
 
 const limiter = (max) =>
   rateLimit({
@@ -64,6 +65,7 @@ admin.get('/reports/summary', adminOnly, h(reports.summary));
 admin.get('/settings', adminOnly, h(settings.get));
 admin.put('/settings', adminOnly, h(settings.update));
 admin.get('/subscribers', adminOnly, h(newsletter.list));
+admin.post('/uploads', adminOnly, uploads.receiveFiles, h(uploads.upload));
 
 router.use('/admin', admin);
 

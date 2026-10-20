@@ -11,7 +11,7 @@ const CUSTOMER_STEPS = [
 
 export default function StatusTimeline({ order }) {
   if (order.status === 'pa_paguar') {
-    return <div className="alert alert-info">Kjo porosi pret pagesën me kartë.</div>;
+    return <div className="alert alert-info">{order.paymentMethod === 'bank' ? 'Kjo porosi pret transfertën bankare.' : 'Kjo porosi pret pagesën me kartë.'}</div>;
   }
   if (order.status === 'e_anuluar') {
     return <div className="alert alert-error">Kjo porosi është anuluar.</div>;

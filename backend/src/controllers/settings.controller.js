@@ -18,6 +18,21 @@ function money(value, label) {
   return Math.round(n);
 }
 
+// Normalises an IBAN and checks its length and ISO 13616 check digits.
+function cleanIban(value) {
+  const iban = String(value ?? '').replace(/\s+/g, '').toUpperCase();
+  if (!iban) return '';
+  const lengths = { AL: 28, XK: 20, MK: 19, ME: 22, IT: 27, GR: 27, DE: 22 };
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{8,30}$/.test(iban) || (lengths[iban.slice(0, 2)] && iban.length !== lengths[iban.slice(0, 2)])) {
+    throw new HttpError(400, 'IBAN-i nuk është i saktë. Një IBAN shqiptar ka 28 shenja dhe fillon me AL.');
+  }
+  const digits = (iban.slice(4) + iban.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
+  let rest = 0;
+  for (const d of digits) rest = (rest * 10 + Number(d)) % 97;
+  if (rest !== 1) throw new HttpError(400, 'IBAN-i nuk është i saktë: kontrollo shifrat (shifrat e kontrollit nuk përputhen).');
+  return iban;
+}
+
 async function get(_req, res) {
   res.json({ settings: await getShopSettings() });
 }
@@ -45,11 +60,18 @@ async function update(req, res) {
       chinaText: text(body.shipping.chinaText, 60) || '10–18 ditë',
     };
   }
+  if (body.bank) {
+    const swift = text(body.bank.swift, 11).replace(/\s+/g, '').toUpperCase();
+    if (swift && !/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(swift)) throw new HttpError(400, 'Kodi SWIFT/BIC nuk është i saktë (8 ose 11 shenja)');
+    doc.bank = { holder: text(body.bank.holder, 120), bankName: text(body.bank.bankName, 80), iban: cleanIban(body.bank.iban), swift };
+  }
   if (body.payments) {
     const card = Boolean(body.payments.card);
     const cod = Boolean(body.payments.cod);
-    if (!card && !cod) throw new HttpError(400, 'Duhet të paktën një mënyrë pagese');
-    doc.payments = { card, cod };
+    const bank = Boolean(body.payments.bank);
+    if (!card && !cod && !bank) throw new HttpError(400, 'Duhet të paktën një mënyrë pagese');
+    if (bank && !(doc.bank?.iban && doc.bank?.holder)) throw new HttpError(400, 'Për transfertën bankare, plotëso më parë llogarinë bankare (emri dhe IBAN-i).');
+    doc.payments = { card, cod, bank };
   }
   if (body.contact) {
     const whatsapp = String(body.contact.whatsapp ?? '').replace(/\D/g, '');

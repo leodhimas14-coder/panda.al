@@ -75,7 +75,7 @@ export default function OrderDetailPage() {
           <h3>{open ? 'Hapi tjetër' : 'Statusi'}</h3>
           {order.paid
             ? <span className="pill status-e_dorezuar">{order.paymentMethod === 'card' ? '💳 Paguar me kartë' : 'Paguar'}</span>
-            : <span className="pill status-e_re">{order.paymentMethod === 'cod' ? 'Paguhet në dorëzim' : 'Pa paguar'}</span>}
+            : <span className="pill status-e_re">{order.paymentMethod === 'cod' ? 'Paguhet në dorëzim' : order.paymentMethod === 'bank' ? '🏦 Pret transfertën' : 'Pa paguar'}</span>}
         </div>
 
         {order.status !== 'e_anuluar' && order.status !== 'pa_paguar' && (
@@ -106,7 +106,8 @@ export default function OrderDetailPage() {
             </ConfirmButton>
           </div>
         )}
-        {order.status === 'pa_paguar' && <p className="muted small">Klienti nuk e ka përfunduar pagesën me kartë. Nëse nuk paguan brenda 1 ore, porosia anulohet vetë.</p>}
+        {order.status === 'pa_paguar' && order.paymentMethod === 'bank' && <p className="muted small">Kontrollo llogarinë bankare për një transfertë {lek(order.total)} me përshkrimin <b>{order.number}</b>. Kur të vijë, shtyp "Shëno si të paguar". Pa pagesë, porosia anulohet vetë pas 3 ditësh.</p>}
+        {order.status === 'pa_paguar' && order.paymentMethod !== 'bank' && <p className="muted small">Klienti nuk e ka përfunduar pagesën me kartë. Nëse nuk paguan brenda 1 ore, porosia anulohet vetë.</p>}
         {order.status === 'e_anuluar' && order.paid && <p className="small"><b>Kjo porosi ishte paguar.</b> Kthejini paratë klientit nga paneli i bankës.</p>}
         {allLocal && open && <p className="muted small">Të gjithë artikujt janë në stok në Shqipëri, kështu që kjo porosi nuk kalon nga Kina.</p>}
         {order.shipment && <p className="small">Dërgesa: <Link to={`/admin/dergesat/${order.shipment._id}`}>{order.shipment.code}</Link></p>}

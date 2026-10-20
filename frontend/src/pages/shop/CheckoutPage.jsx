@@ -13,7 +13,7 @@ const loadSaved = () => { try { return JSON.parse(localStorage.getItem(SAVED_KEY
 export default function CheckoutPage() {
   const { lines, subtotal, clear } = useCart();
   const { shipping, payments } = useConfig();
-  const methods = [payments.card && 'card', payments.cod && 'cod'].filter(Boolean);
+  const methods = [payments.card && 'card', payments.bank && 'bank', payments.cod && 'cod'].filter(Boolean);
   const [method, setMethod] = useState(null);
   const paymentMethod = methods.includes(method) ? method : methods[0] || 'card';
   const navigate = useNavigate();
@@ -85,6 +85,12 @@ export default function CheckoutPage() {
               <span><b>💳 Kartë (Visa, Mastercard)</b><span className="muted small">Paguan tani në faqen e sigurt të bankës.</span></span>
             </label>
           )}
+          {methods.includes('bank') && (
+            <label className={`pay-method ${paymentMethod === 'bank' ? 'active' : ''}`}>
+              <input type="radio" name="payment" id="pay-bank" checked={paymentMethod === 'bank'} onChange={() => setMethod('bank')} />
+              <span><b>🏦 Transfertë bankare</b><span className="muted small">Pas porosisë të japim IBAN-in. Porosia niset kur të mbërrijë pagesa.</span></span>
+            </label>
+          )}
           {methods.includes('cod') && (
             <label className={`pay-method ${paymentMethod === 'cod' ? 'active' : ''}`}>
               <input type="radio" name="payment" id="pay-cod" checked={paymentMethod === 'cod'} onChange={() => setMethod('cod')} />
@@ -103,7 +109,7 @@ export default function CheckoutPage() {
 
         {error && <div className="alert alert-error">{error}</div>}
         <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={submitting}>
-          {submitting ? 'Po dërgohet…' : paymentMethod === 'card' ? `Paguaj ${lek(subtotal + fee)}` : 'Konfirmo porosinë'}
+          {submitting ? 'Po dërgohet…' : paymentMethod === 'card' ? `Paguaj ${lek(subtotal + fee)}` : paymentMethod === 'bank' ? 'Porosit dhe merr IBAN-in' : 'Konfirmo porosinë'}
         </button>
         <p className="muted small center">{paymentMethod === 'card' ? 'Do të kaloni te faqja e sigurt e pagesës.' : 'Do t\'ju telefonojmë për të konfirmuar porosinë.'} <Link to="/info">Dërgesa dhe pagesa</Link></p>
       </form>

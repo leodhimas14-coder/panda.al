@@ -44,9 +44,10 @@ async function createOrder(input) {
   if (rawItems.length > MAX_ITEMS) throw new HttpError(400, 'Shumë artikuj në një porosi');
 
   const shop = await getShopSettings();
-  const paymentMethod = input?.paymentMethod === 'cod' ? 'cod' : 'card';
+  const paymentMethod = ['cod', 'bank'].includes(input?.paymentMethod) ? input.paymentMethod : 'card';
   if (!shop.payments[paymentMethod]) {
-    throw new HttpError(400, paymentMethod === 'cod' ? 'Pagesa në dorëzim nuk pranohet' : 'Pagesa me kartë nuk pranohet');
+    const names = { cod: 'Pagesa në dorëzim', bank: 'Transferta bankare', card: 'Pagesa me kartë' };
+    throw new HttpError(400, `${names[paymentMethod]} nuk pranohet`);
   }
   // Fail before touching stock if card payments can't be taken right now.
   const provider = paymentMethod === 'card' ? getProvider() : null;
@@ -99,8 +100,8 @@ async function createOrder(input) {
     const fee = shop.shipping.freeFrom > 0 && subtotal >= shop.shipping.freeFrom ? 0 : shop.shipping.fee;
     const seq = await Counter.next('order');
 
-    // Card orders stay hidden from the "new orders" list until they are paid.
-    const status = paymentMethod === 'card' ? 'pa_paguar' : 'e_re';
+    // Card and bank-transfer orders stay out of the "new orders" list until paid.
+    const status = paymentMethod === 'cod' ? 'e_re' : 'pa_paguar';
     const order = await Order.create({
       number: `PA-${seq}`,
       customer,
@@ -119,7 +120,7 @@ async function createOrder(input) {
       await order.save();
       return { order, paymentUrl: redirectUrl };
     }
-    notifyOwner(formatNewOrder(order));
+    notifyOwner(paymentMethod === 'bank' ? `${formatNewOrder(order)}\n⏳ Pret transfertën bankare` : formatNewOrder(order));
     return { order, paymentUrl: null };
   } catch (err) {
     await restoreStock(reserved);
@@ -173,10 +174,19 @@ async function applyPaymentResult(reference, paid) {
   return order;
 }
 
-/** Cancels card orders left unpaid for too long and puts their stock back. */
-async function expireUnpaidOrders(maxAgeMinutes = 60) {
-  const cutoff = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
-  const stale = await Order.find({ status: 'pa_paguar', createdAt: { $lt: cutoff } });
+/**
+ * Cancels unpaid orders and puts their stock back: card checkouts after
+ * `cardMinutes`, bank transfers (which take a day or two) after `bankHours`.
+ */
+async function expireUnpaidOrders(cardMinutes = 60, bankHours = 72) {
+  const now = Date.now();
+  const stale = await Order.find({
+    status: 'pa_paguar',
+    $or: [
+      { paymentMethod: { $ne: 'bank' }, createdAt: { $lt: new Date(now - cardMinutes * 60 * 1000) } },
+      { paymentMethod: 'bank', createdAt: { $lt: new Date(now - bankHours * 3600 * 1000) } },
+    ],
+  });
   for (const order of stale) await setOrderStatus(order, 'e_anuluar', 'sistemi', 'Pagesa nuk u krye në kohë');
   return stale.length;
 }

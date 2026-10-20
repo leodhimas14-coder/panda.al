@@ -3,6 +3,7 @@ import { api } from '../../lib/api';
 import { useConfig } from '../../context/ConfigContext';
 import HomeBanner, { isVideo } from '../../components/HomeBanner';
 import { lek } from '../../lib/format';
+import UploadButton from '../../components/UploadButton';
 
 // Each card saves only its own section, so one mistake doesn't block the rest.
 function SectionCard({ title, hint, children, onSave, busy, msg }) {
@@ -72,13 +73,20 @@ export default function SettingsPage() {
 
       <SectionCard
         title="Video ose foto në kryefaqe"
-        hint="Ngjit linkun e videos (.mp4) ose të fotos. Videoja luhet vetë, pa zë. Për telefon përdor video vertikale (4:5), nën 10 MB. Lëre bosh që të mos shfaqet asgjë."
+        hint="Ngarko një video (MP4 ose MOV, deri 60 MB) ose një foto. Videoja luhet vetë, pa zë. Për telefon përdor video vertikale (4:5). Pas ngarkimit shtyp Ruaj."
         busy={busy === 'homeBanner'} msg={msgs.homeBanner}
         onSave={() => save('homeBanner', { homeBanner: banner })}
       >
-        <label>Linku i videos ose fotos<input id="banner-url" value={banner.url} onChange={field('homeBanner', 'url')} placeholder="https://…/koleksioni.mp4" /></label>
+        <div className="row">
+          <UploadButton accept="video/mp4,video/webm,video/quicktime,image/*" label="🎬 Ngarko video ose foto" onUploaded={([f]) => f && setS((prev) => ({ ...prev, homeBanner: { ...prev.homeBanner, url: f.url } }))} />
+          {banner.url && <button type="button" className="btn btn-ghost" onClick={() => setS((prev) => ({ ...prev, homeBanner: { url: '', posterUrl: '', link: prev.homeBanner.link } }))}>Hiqe</button>}
+        </div>
+        <label>Ose ngjit një link<input id="banner-url" value={banner.url.startsWith('blob:') || banner.url.startsWith('data:') ? '(skedar i ngarkuar)' : banner.url} onChange={field('homeBanner', 'url')} placeholder="https://…/koleksioni.mp4" /></label>
         {isVideo(banner.url) && (
-          <label>Foto derisa ngarkohet videoja (opsionale)<input id="banner-poster" value={banner.posterUrl} onChange={field('homeBanner', 'posterUrl')} placeholder="https://…/kopertina.jpg" /></label>
+          <div className="form-row">
+            <label>Foto derisa ngarkohet videoja (opsionale)<input id="banner-poster" value={banner.posterUrl} onChange={field('homeBanner', 'posterUrl')} placeholder="https://…/kopertina.jpg" /></label>
+            <UploadButton className="btn btn-ghost align-end" label="Ngarko foto" onUploaded={([f]) => f && setS((prev) => ({ ...prev, homeBanner: { ...prev.homeBanner, posterUrl: f.url } }))} />
+          </div>
         )}
         <label>Ku të shkojë kur e shtypin (opsionale)<input id="banner-link" value={banner.link} onChange={field('homeBanner', 'link')} placeholder="/dyqani?oferta=1" /></label>
         <div className="banner-preview">
@@ -109,7 +117,22 @@ export default function SettingsPage() {
         onSave={() => save('payments', { payments: s.payments })}
       >
         <label className="check"><input id="pay-card-on" type="checkbox" checked={s.payments.card} onChange={field('payments', 'card')} /> Pagesë me kartë</label>
+        <label className="check"><input id="pay-bank-on" type="checkbox" checked={s.payments.bank} onChange={field('payments', 'bank')} /> Transfertë bankare (klienti paguan te IBAN-i yt)</label>
         <label className="check"><input id="pay-cod-on" type="checkbox" checked={s.payments.cod} onChange={field('payments', 'cod')} /> Pagesë në dorëzim (cash)</label>
+      </SectionCard>
+
+      <SectionCard
+        title="Llogaria bankare (ku vijnë paratë)"
+        hint="Kjo është llogaria jote e biznesit. Klientët që zgjedhin transfertë bankare e shohin këtu ku të paguajnë. Për pagesat me kartë, paratë i kalon banka ose ofruesi i kartave në llogarinë që i jep atyre kur hap kontratën. Jepu të njëjtin IBAN."
+        busy={busy === 'bank'} msg={msgs.bank}
+        onSave={() => save('bank', { bank: s.bank })}
+      >
+        <div className="form-row">
+          <label>Emri i mbajtësit të llogarisë<input id="bank-holder" value={s.bank.holder} onChange={field('bank', 'holder')} placeholder="p.sh. Panda shpk" /></label>
+          <label>Banka<input id="bank-name" value={s.bank.bankName} onChange={field('bank', 'bankName')} placeholder="p.sh. BKT" /></label>
+        </div>
+        <label>IBAN<input id="bank-iban" value={s.bank.iban} onChange={field('bank', 'iban')} placeholder="AL47 2121 1009 0000 0002 3569 8741" autoComplete="off" spellCheck={false} /></label>
+        <label>SWIFT/BIC (opsionale)<input id="bank-swift" value={s.bank.swift} onChange={field('bank', 'swift')} placeholder="p.sh. NCBAALTX" autoComplete="off" spellCheck={false} /></label>
       </SectionCard>
 
       <SectionCard
