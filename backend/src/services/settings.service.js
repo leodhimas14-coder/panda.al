@@ -14,6 +14,12 @@ function defaults() {
     payments: { card: true, cod: false, bank: false },
     bank: { holder: '', bankName: '', iban: '', swift: '' },
     contact: { whatsapp: process.env.WHATSAPP || '', phone: '', email: '' },
+    home: {
+      featuredTitle: 'Më të pëlqyerat',
+      latestTitle: 'Të rejat',
+      newsletterTitle: 'Regjistrohu dhe mëso të parën për ofertat dhe koleksionet e reja.',
+    },
+    pages: { about: '', info: '', terms: '' },
     cnyToAll: Number(process.env.CNY_TO_ALL ?? 13),
   };
 }

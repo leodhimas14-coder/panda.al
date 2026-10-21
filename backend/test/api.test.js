@@ -21,6 +21,7 @@ let mongo;
 let app;
 let adminToken;
 let staffToken;
+let customerToken;
 let jacket;
 let wallet;
 
@@ -34,6 +35,7 @@ before(async () => {
   await User.create({ name: 'Magazina', email: 'staff@panda.al', passwordHash, role: 'staff' });
   adminToken = (await request(app).post('/api/auth/login').send({ email: 'admin@panda.al', password: 'sekret123' })).body.token;
   staffToken = (await request(app).post('/api/auth/login').send({ email: 'staff@panda.al', password: 'sekret123' })).body.token;
+  customerToken = (await request(app).post('/api/customers/register').send({ name: 'Arta Hoxha', login: '069 123 4567', password: 'blerje123' })).body.token;
 });
 
 after(async () => {
@@ -43,6 +45,7 @@ after(async () => {
 
 const asAdmin = (req) => req.set('Authorization', `Bearer ${adminToken}`);
 const asStaff = (req) => req.set('Authorization', `Bearer ${staffToken}`);
+const asCustomer = (req) => req.set('Authorization', `Bearer ${customerToken}`);
 // Completes (or fails) the fake card payment the way the provider would.
 async function pay(orderRes, success = true) {
   const ref = new URL(orderRes.body.paymentUrl).searchParams.get('ref');
@@ -100,10 +103,10 @@ test('menu filters: gender includes unisex, sale needs a lower price', async () 
 });
 
 test('checkout validates phone and variant', async () => {
-  let res = await request(app).post('/api/orders').send({ customer: { ...customer, phone: '12345' }, items: [{ productId: wallet._id, quantity: 1 }] });
+  let res = await asCustomer(request(app).post('/api/orders')).send({ customer: { ...customer, phone: '12345' }, items: [{ productId: wallet._id, quantity: 1 }] });
   assert.equal(res.status, 400);
 
-  res = await request(app).post('/api/orders').send({ customer, items: [{ productId: jacket._id, quantity: 1 }] });
+  res = await asCustomer(request(app).post('/api/orders')).send({ customer, items: [{ productId: jacket._id, quantity: 1 }] });
   assert.equal(res.status, 400, 'variant is required when the product has variants');
 });
 
@@ -112,7 +115,7 @@ let orderB;
 
 test('order uses server prices, reserves local stock and charges shipping', async () => {
   const [m, l] = jacket.variants;
-  const res = await request(app).post('/api/orders').send({
+  const res = await asCustomer(request(app).post('/api/orders')).send({
     customer,
     items: [
       { productId: jacket._id, variantId: m._id, quantity: 1, unitPrice: 1 },
@@ -132,7 +135,7 @@ test('order uses server prices, reserves local stock and charges shipping', asyn
   const product = (await asAdmin(request(app).get(`/api/admin/products/${jacket._id}`))).body.product;
   assert.equal(product.variants[0].stock, 1, 'M stock reserved');
 
-  const res2 = await request(app).post('/api/orders').send({ customer: { ...customer, phone: '+355682223333' }, items: [{ productId: wallet._id, quantity: 2 }] });
+  const res2 = await asCustomer(request(app).post('/api/orders')).send({ customer: { ...customer, phone: '+355682223333' }, items: [{ productId: wallet._id, quantity: 2 }] });
   assert.equal(res2.body.order.total, 3300, '2×1500 + 300 shipping');
   orderB = (await pay(res2)).body.order;
 });
@@ -148,7 +151,7 @@ test('tracking requires the matching phone number', async () => {
 
 test('cancelling an order returns reserved stock', async () => {
   const [m] = jacket.variants;
-  const placed = await request(app).post('/api/orders').send({ customer, items: [{ productId: jacket._id, variantId: m._id, quantity: 1 }] });
+  const placed = await asCustomer(request(app).post('/api/orders')).send({ customer, items: [{ productId: jacket._id, variantId: m._id, quantity: 1 }] });
   const list = await asStaff(request(app).get(`/api/admin/orders?q=${placed.body.order.number}`));
   const id = list.body.orders[0]._id;
 
@@ -240,7 +243,7 @@ test('failed card payment cancels the order and returns the stock', async () => 
   const [m] = jacket.variants;
   const stockOf = async () => (await asAdmin(request(app).get(`/api/admin/products/${jacket._id}`))).body.product.variants[0].stock;
   const before = await stockOf();
-  const res = await request(app).post('/api/orders').send({ customer, items: [{ productId: jacket._id, variantId: m._id, quantity: 1 }] });
+  const res = await asCustomer(request(app).post('/api/orders')).send({ customer, items: [{ productId: jacket._id, variantId: m._id, quantity: 1 }] });
   assert.equal(await stockOf(), before - 1);
 
   const failed = await pay(res, false);
@@ -252,7 +255,7 @@ test('failed card payment cancels the order and returns the stock', async () => 
 });
 
 test('unpaid card orders expire after the time limit', async () => {
-  const res = await request(app).post('/api/orders').send({ customer, items: [{ productId: wallet._id, quantity: 1 }] });
+  const res = await asCustomer(request(app).post('/api/orders')).send({ customer, items: [{ productId: wallet._id, quantity: 1 }] });
   await Order.collection.updateOne({ number: res.body.order.number }, { $set: { createdAt: new Date(Date.now() - 2 * 3600 * 1000) } });
   assert.ok((await expireUnpaidOrders(60)) >= 1);
   const track = await request(app).get(`/api/orders/track/${res.body.order.number}?phone=0691234567`);
@@ -278,14 +281,14 @@ test('admin settings: shipping, payment methods, promo bar, contact', async () =
   assert.equal(cfg.contact.whatsapp, '355691234567');
   assert.equal(cfg.cnyToAll, undefined, 'exchange rate stays private');
 
-  const cod = await request(app).post('/api/orders').send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
+  const cod = await asCustomer(request(app).post('/api/orders')).send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
   assert.equal(cod.body.order.status, 'e_re', 'cash orders skip the payment step');
   assert.equal(cod.body.order.total, 1900, '1500 + new 400 shipping');
   assert.equal(cod.body.paymentUrl, null);
 
   // Back to card only, as the rest of the shop expects.
   await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, cod: false }, shipping: { fee: 300, freeFrom: 6000 }, cnyToAll: 13 });
-  const refused = await request(app).post('/api/orders').send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
+  const refused = await asCustomer(request(app).post('/api/orders')).send({ customer, paymentMethod: 'cod', items: [{ productId: wallet._id, quantity: 1 }] });
   assert.equal(refused.status, 400);
 });
 
@@ -326,7 +329,7 @@ test('bank account: IBAN is checked; bank transfer orders wait for payment', asy
   await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, bank: true } });
   assert.equal((await request(app).get('/api/config')).body.bank.iban, 'AL47212110090000000235698741');
 
-  const order = await request(app).post('/api/orders').send({ customer, paymentMethod: 'bank', items: [{ productId: wallet._id, quantity: 1 }] });
+  const order = await asCustomer(request(app).post('/api/orders')).send({ customer, paymentMethod: 'bank', items: [{ productId: wallet._id, quantity: 1 }] });
   assert.equal(order.status, 201);
   assert.equal(order.body.order.status, 'pa_paguar');
   assert.equal(order.body.paymentUrl, null);
@@ -342,6 +345,85 @@ test('bank account: IBAN is checked; bank transfer orders wait for payment', asy
   assert.equal(paid.body.order.paid, true);
 
   await asAdmin(request(app).put('/api/admin/settings')).send({ payments: { card: true, cod: false, bank: false } });
+});
+
+test('buying needs a customer account; browsing does not', async () => {
+  assert.equal((await request(app).get('/api/products')).status, 200);
+  const guest = await request(app).post('/api/orders').send({ customer, items: [{ productId: wallet._id, quantity: 1 }] });
+  assert.equal(guest.status, 401);
+  assert.match(guest.body.error, /llogari/);
+});
+
+test('customer and staff logins never open each other\'s doors', async () => {
+  assert.equal((await asCustomer(request(app).get('/api/admin/orders'))).status, 401, 'customer token on admin');
+  const staffAsCustomer = await asStaff(request(app).post('/api/orders')).send({ customer, items: [{ productId: wallet._id, quantity: 1 }] });
+  assert.equal(staffAsCustomer.status, 401, 'staff token on checkout');
+});
+
+test('customer accounts: email or phone, no duplicates, own orders only', async () => {
+  let res = await request(app).post('/api/customers/register').send({ name: 'X', login: '0691234567', password: 'abcdef' });
+  assert.equal(res.status, 409, 'phone already registered');
+  res = await request(app).post('/api/customers/register').send({ name: 'Besa', login: 'besa@gmail.com', password: '123' });
+  assert.equal(res.status, 400, 'short password');
+  res = await request(app).post('/api/customers/register').send({ name: 'Besa', login: 'Besa@Gmail.com', password: 'abcdef' });
+  assert.equal(res.status, 201);
+  const besa = res.body.token;
+
+  assert.equal((await request(app).post('/api/customers/login').send({ login: 'besa@gmail.com', password: 'gabim1' })).status, 401);
+  const viaPhone = await request(app).post('/api/customers/login').send({ login: '+355 69 123 4567', password: 'blerje123' });
+  assert.equal(viaPhone.status, 200);
+  assert.equal(viaPhone.body.customer.passwordHash, undefined);
+
+  const mine = await asCustomer(request(app).get('/api/customers/me/orders'));
+  assert.ok(mine.body.orders.length >= 2, 'Arta sees her orders');
+  const theirs = await request(app).get('/api/customers/me/orders').set('Authorization', `Bearer ${besa}`);
+  assert.equal(theirs.body.orders.length, 0, 'Besa sees none of them');
+
+  const me = await asCustomer(request(app).get('/api/customers/me'));
+  assert.equal(me.body.customer.address.city, 'Tiranë', 'address remembered from the last order');
+
+  const list = await asAdmin(request(app).get('/api/admin/customers'));
+  assert.equal(list.status, 200);
+  const arta = list.body.customers.find((c) => c.phone === '+355691234567');
+  assert.ok(arta.orders >= 1);
+
+  // Owner resets a forgotten password.
+  await asAdmin(request(app).patch(`/api/admin/customers/${arta._id}`)).send({ password: 'iri12345' });
+  assert.equal((await request(app).post('/api/customers/login').send({ login: '0691234567', password: 'iri12345' })).status, 200);
+});
+
+test('categories: add, rename, hide, reorder; delete only when empty', async () => {
+  let res = await asAdmin(request(app).post('/api/admin/categories')).send({ label: 'Syze dielli', emoji: '🕶️' });
+  assert.equal(res.status, 201);
+  assert.equal(res.body.category.key, 'syze-dielli');
+  const id = res.body.category._id;
+  assert.equal((await asStaff(request(app).post('/api/admin/categories')).send({ label: 'X' })).status, 403);
+
+  const prod = await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Syze Aviator', category: 'syze-dielli', price: 1200 });
+  assert.equal(prod.status, 201);
+  assert.equal((await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Y', category: 'nuk-ekziston', price: 1 })).status, 400);
+
+  await asAdmin(request(app).patch(`/api/admin/categories/${id}`)).send({ label: 'Syze' });
+  await asAdmin(request(app).post(`/api/admin/categories/${id}/move`)).send({ direction: 'up' });
+  let pub = (await request(app).get('/api/config')).body.categories.map((c) => c.label);
+  assert.equal(pub.at(-2), 'Syze', 'moved up one place, renamed');
+
+  assert.equal((await asAdmin(request(app).delete(`/api/admin/categories/${id}`))).status, 400, 'has a product');
+  assert.equal((await asAdmin(request(app).delete(`/api/admin/products/${prod.body.product._id}`))).status, 200);
+  assert.equal((await asAdmin(request(app).get(`/api/admin/products/${prod.body.product._id}`))).status, 404, 'deleted for good');
+
+  await asAdmin(request(app).patch(`/api/admin/categories/${id}`)).send({ active: false });
+  pub = (await request(app).get('/api/categories')).body.categories.map((c) => c.key);
+  assert.ok(!pub.includes('syze-dielli'), 'hidden from the shop');
+  assert.equal((await asAdmin(request(app).delete(`/api/admin/categories/${id}`))).status, 200);
+});
+
+test('page texts and home titles are editable', async () => {
+  await asAdmin(request(app).put('/api/admin/settings')).send({ pages: { about: '## Kush jemi\nNjë dyqan i vogël.', info: '', terms: '' }, home: { featuredTitle: 'Zgjedhjet tona' } });
+  const cfg = (await request(app).get('/api/config')).body;
+  assert.equal(cfg.pages.about, '## Kush jemi\nNjë dyqan i vogël.');
+  assert.equal(cfg.home.featuredTitle, 'Zgjedhjet tona');
+  assert.equal(cfg.home.latestTitle, 'Të rejat', 'empty falls back to the default');
 });
 
 test('admin routes need a token', async () => {

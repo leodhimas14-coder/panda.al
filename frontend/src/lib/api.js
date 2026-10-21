@@ -6,19 +6,24 @@ export const tokenStore = {
   set: (t) => { try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ } },
 };
 
+const CUSTOMER_KEY = 'panda_customer_token';
+export const customerTokenStore = {
+  get: () => { try { return localStorage.getItem(CUSTOMER_KEY); } catch { return null; } },
+  set: (t) => { try { t ? localStorage.setItem(CUSTOMER_KEY, t) : localStorage.removeItem(CUSTOMER_KEY); } catch { /* ignore */ } },
+};
+
 export const IS_DEMO = import.meta.env.VITE_DEMO === '1';
 
+/** auth: true = admin/staff login, 'customer' = shopper login. */
 export async function api(path, { method = 'GET', body, auth = false } = {}) {
+  const token = auth === 'customer' ? customerTokenStore.get() : auth ? tokenStore.get() : null;
   if (IS_DEMO) {
     const { demoApi } = await import('./demoApi');
-    return demoApi(path, { method, body });
+    return demoApi(path, { method, body, auth, token });
   }
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
-  if (auth) {
-    const token = tokenStore.get();
-    if (token) headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   let res;
   try {

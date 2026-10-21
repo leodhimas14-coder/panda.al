@@ -149,6 +149,29 @@ export default function SettingsPage() {
       </SectionCard>
 
       <SectionCard
+        title="Titujt në kryefaqe"
+        busy={busy === 'home'} msg={msgs.home}
+        onSave={() => save('home', { home: s.home })}
+      >
+        <div className="form-row">
+          <label>Seksioni i parë<input id="home-featured" maxLength={60} value={s.home.featuredTitle} onChange={field('home', 'featuredTitle')} /></label>
+          <label>Seksioni i dytë<input id="home-latest" maxLength={60} value={s.home.latestTitle} onChange={field('home', 'latestTitle')} /></label>
+        </div>
+        <label>Teksti mbi regjistrimin me email<input id="home-newsletter" maxLength={160} value={s.home.newsletterTitle} onChange={field('home', 'newsletterTitle')} /></label>
+      </SectionCard>
+
+      <SectionCard
+        title="Tekstet e faqeve"
+        hint='Shkruaj tekstin si në një mesazh. Një rresht që fillon me "## " bëhet titull; një rresht bosh ndan paragrafët. Lëre bosh që të përdoret teksti fillestar i dyqanit.'
+        busy={busy === 'pages'} msg={msgs.pages}
+        onSave={() => save('pages', { pages: s.pages })}
+      >
+        <label>Kush jemi<textarea id="page-about" rows={6} value={s.pages.about} onChange={field('pages', 'about')} placeholder={'## Kush jemi\nPanda.al është…'} /></label>
+        <label>Dërgesa dhe pagesa<textarea id="page-info" rows={6} value={s.pages.info} onChange={field('pages', 'info')} placeholder={'## Sa zgjat dërgesa?\n…'} /></label>
+        <label>Privatësia dhe kushtet<textarea id="page-terms" rows={8} value={s.pages.terms} onChange={field('pages', 'terms')} placeholder={'## Çfarë të dhënash mbledhim\n…'} /></label>
+      </SectionCard>
+
+      <SectionCard
         title="Kursi i juanit"
         hint="Përdoret për të llogaritur koston e blerjes në Kinë dhe fitimin. Klientët nuk e shohin."
         busy={busy === 'cnyToAll'} msg={msgs.cnyToAll}

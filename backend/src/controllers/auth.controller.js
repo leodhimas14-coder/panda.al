@@ -12,7 +12,7 @@ async function login(req, res) {
   if (!ok) throw new HttpError(401, 'Email ose fjalëkalim i gabuar');
 
   const token = jwt.sign(
-    { id: user._id, role: user.role, name: user.name },
+    { type: 'staff', id: user._id, role: user.role, name: user.name },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );

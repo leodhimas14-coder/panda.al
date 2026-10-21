@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { CATEGORIES, GENDERS, keys } = require('../config/constants');
+const { GENDERS, keys } = require('../config/constants');
 
 const variantSchema = new mongoose.Schema(
   {
@@ -15,7 +15,7 @@ const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    category: { type: String, enum: keys(CATEGORIES), required: true },
+    category: { type: String, required: true, trim: true }, // a Category key; checked when saving from the admin
     gender: { type: String, enum: keys(GENDERS), default: 'unisex' },
     description: { type: String, default: '' },
     images: [{ type: String, trim: true }],

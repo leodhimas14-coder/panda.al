@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { CATEGORY_LABEL, GENDER_LABEL, lek } from '../../lib/format';
+import { GENDER_LABEL, lek } from '../../lib/format';
+import { useCategoryLabels } from '../../context/ConfigContext';
 import UploadButton from '../../components/UploadButton';
+import ConfirmButton from '../../components/ConfirmButton';
 
 const EMPTY = {
   name: '', category: 'rroba', gender: 'unisex', description: '', images: [], price: '', compareAtPrice: '',
@@ -15,6 +17,7 @@ export default function ProductFormPage() {
   const { id } = useParams();
   const isNew = !id || id === 'i-ri';
   const navigate = useNavigate();
+  const CATEGORY_LABEL = useCategoryLabels();
   const [form, setForm] = useState(isNew ? EMPTY : null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -30,6 +33,8 @@ export default function ProductFormPage() {
 
   if (!form) return error ? <div className="alert alert-error">{error}</div> : <p className="muted">Duke u ngarkuar…</p>;
 
+  // If the saved category was deleted, fall back to the first one that exists.
+  const categoryValue = CATEGORY_LABEL[form.category] ? form.category : Object.keys(CATEGORY_LABEL)[0] || '';
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
   const setSupplier = (key) => (e) => setForm((f) => ({ ...f, supplier: { ...f.supplier, [key]: e.target.value } }));
   const addImages = (urls) => setForm((f) => ({ ...f, images: [...f.images, ...urls] }));
@@ -61,6 +66,7 @@ export default function ProductFormPage() {
     setError('');
     const body = {
       ...form,
+      category: categoryValue,
       price: Number(form.price),
       compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : undefined,
       images: form.images.filter(Boolean),
@@ -90,7 +96,7 @@ export default function ProductFormPage() {
         <label>Emri<input required value={form.name} onChange={set('name')} /></label>
         <div className="form-row">
           <label>Kategoria
-            <select value={form.category} onChange={set('category')}>
+            <select value={categoryValue} onChange={set('category')}>
               {Object.entries(CATEGORY_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
@@ -175,6 +181,18 @@ export default function ProductFormPage() {
       <div className="row sticky-actions">
         <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? 'Po ruhet…' : 'Ruaj produktin'}</button>
         <Link to="/admin/produktet" className="btn btn-ghost">Anulo</Link>
+        {!isNew && (
+          <ConfirmButton
+            className="btn btn-danger-ghost push-right"
+            confirmText="Po, fshije përgjithmonë"
+            onConfirm={async () => {
+              try {
+                await api(`/admin/products/${id}`, { method: 'DELETE', auth: true });
+                navigate('/admin/produktet');
+              } catch (err) { setError(err.message); }
+            }}
+          >Fshi produktin</ConfirmButton>
+        )}
       </div>
     </form>
   );

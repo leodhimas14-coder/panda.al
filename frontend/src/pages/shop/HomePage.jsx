@@ -2,17 +2,12 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
 import HomeBanner from '../../components/HomeBanner';
 import GenderTiles from '../../components/GenderTiles';
+import { useConfig } from '../../context/ConfigContext';
 import { useApi } from '../../lib/useApi';
 
-const CATEGORIES = [
-  { key: 'rroba', label: 'Rroba', emoji: '👕' },
-  { key: 'kepuce', label: 'Këpucë', emoji: '👟' },
-  { key: 'canta', label: 'Çanta', emoji: '👜' },
-  { key: 'portofola', label: 'Portofola', emoji: '👛' },
-  { key: 'aksesore', label: 'Aksesorë', emoji: '🧢' },
-];
 
 export default function HomePage() {
+  const { categories, home } = useConfig();
   const featured = useApi('/products?featured=1&limit=8');
   const latest = useApi('/products?limit=8');
 
@@ -22,18 +17,20 @@ export default function HomePage() {
 
       <section className="container section">
         <div className="category-row">
-          {CATEGORIES.map((c) => (
+          {(categories || []).map((c) => (
             <Link key={c.key} to={`/dyqani?kategoria=${c.key}`} className="category-chip">
-              <span className="category-emoji" aria-hidden="true">{c.emoji}</span>
+              {c.image
+                ? <img className="category-img" src={c.image} alt="" />
+                : <span className="category-emoji" aria-hidden="true">{c.emoji || '🛍️'}</span>}
               {c.label}
             </Link>
           ))}
         </div>
       </section>
 
-      <ProductSection title="Më të pëlqyerat" state={featured} />
+      <ProductSection title={home.featuredTitle} state={featured} />
 
-      <ProductSection title="Të rejat" state={latest} link="/dyqani" />
+      <ProductSection title={home.latestTitle} state={latest} link="/dyqani" />
 
       <GenderTiles />
     </>

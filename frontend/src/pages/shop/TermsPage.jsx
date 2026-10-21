@@ -1,5 +1,16 @@
+import { useConfig } from '../../context/ConfigContext';
+import RichText from '../../lib/RichText';
 // Plain-language summary. Have it reviewed by a lawyer before launch.
 export default function TermsPage() {
+  const { pages } = useConfig();
+  if (pages?.terms) {
+    return (
+      <div className="container section narrow prose">
+        <h1 className="page-title">Privatësia dhe kushtet</h1>
+        <RichText text={pages.terms} />
+      </div>
+    );
+  }
   return (
     <div className="container section narrow prose">
       <h1 className="page-title">Privatësia dhe kushtet</h1>

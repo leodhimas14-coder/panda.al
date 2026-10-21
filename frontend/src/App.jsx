@@ -15,6 +15,8 @@ import AboutPage from './pages/shop/AboutPage';
 import PaymentPage from './pages/shop/PaymentPage';
 import TermsPage from './pages/shop/TermsPage';
 import SubscribersPage from './pages/admin/SubscribersPage';
+import CategoriesPage from './pages/admin/CategoriesPage';
+import CustomersPage from './pages/admin/CustomersPage';
 import AdminLayout from './pages/admin/AdminLayout';
 import LoginPage from './pages/admin/LoginPage';
 import DashboardPage from './pages/admin/DashboardPage';
@@ -71,6 +73,8 @@ export default function App() {
           <Route path="cilesimet" element={<SettingsPage />} />
           <Route path="kryefaqja" element={<SettingsPage />} />
           <Route path="abonentet" element={<SubscribersPage />} />
+          <Route path="kategorite" element={<CategoriesPage />} />
+          <Route path="klientet" element={<CustomersPage />} />
         </Route>
       </Routes>
     </>

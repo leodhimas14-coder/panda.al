@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const { HttpError } = require('../middleware/errorHandler');
+const { categoryExists } = require('../services/category.service');
 
 const slugify = (text) =>
   String(text)
@@ -40,8 +41,15 @@ async function get(req, res) {
   res.json({ product });
 }
 
+async function checkCategory(data) {
+  if (data.category !== undefined && !(await categoryExists(String(data.category)))) {
+    throw new HttpError(400, 'Zgjidh një kategori që ekziston');
+  }
+}
+
 async function create(req, res) {
   const data = pick(req.body || {});
+  await checkCategory(data);
   data.slug = await uniqueSlug(data.slug || data.name || '');
   const product = await Product.create(data);
   res.status(201).json({ product });
@@ -51,17 +59,19 @@ async function update(req, res) {
   const product = await Product.findById(req.params.id);
   if (!product) throw new HttpError(404, 'Produkti nuk u gjet');
   const data = pick(req.body || {});
+  await checkCategory(data);
   if (data.slug !== undefined) data.slug = await uniqueSlug(data.slug || product.name, product._id);
   product.set(data);
   await product.save();
   res.json({ product });
 }
 
-// Products referenced by old orders are hidden rather than deleted.
+// Deletes the product for good. Old orders keep their own copy of the name,
+// photo and price, so they still read correctly.
 async function remove(req, res) {
-  const product = await Product.findByIdAndUpdate(req.params.id, { active: false }, { new: true });
+  const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) throw new HttpError(404, 'Produkti nuk u gjet');
-  res.json({ product });
+  res.json({ deleted: true });
 }
 
 module.exports = { list, get, create, update, remove, slugify };

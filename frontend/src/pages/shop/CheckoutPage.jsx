@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useConfig, shippingFor } from '../../context/ConfigContext';
 import { api, IS_DEMO } from '../../lib/api';
 import { savePendingPayment } from '../../lib/pendingPayment';
+import { useCustomer } from '../../context/CustomerContext';
 import { CITIES, lek } from '../../lib/format';
 import { rememberOrder } from '../../lib/myOrders';
 
@@ -13,6 +14,7 @@ const loadSaved = () => { try { return JSON.parse(localStorage.getItem(SAVED_KEY
 export default function CheckoutPage() {
   const { lines, subtotal, clear } = useCart();
   const { shipping, payments } = useConfig();
+  const { customer, loading: customerLoading } = useCustomer();
   const methods = [payments.card && 'card', payments.bank && 'bank', payments.cod && 'cod'].filter(Boolean);
   const [method, setMethod] = useState(null);
   const paymentMethod = methods.includes(method) ? method : methods[0] || 'card';
@@ -21,7 +23,21 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Fill in what the account already knows, without overwriting what was typed.
+  useEffect(() => {
+    if (!customer) return;
+    setForm((f) => ({
+      ...f,
+      name: f.name || customer.name,
+      phone: f.phone || (customer.phone ? `0${customer.phone.slice(4)}` : ''),
+      city: f.city || customer.address?.city || '',
+      address: f.address || customer.address?.address || '',
+    }));
+  }, [customer]);
+
   if (lines.length === 0) return <Navigate to="/shporta" replace />;
+  if (customerLoading) return <div className="container section"><p className="muted">Duke u ngarkuar…</p></div>;
+  if (!customer) return <Navigate to="/llogaria?pas=/porosit" replace />;
 
   const fee = shippingFor(subtotal, shipping);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -33,6 +49,7 @@ export default function CheckoutPage() {
     try {
       const { order, paymentUrl } = await api('/orders', {
         method: 'POST',
+        auth: 'customer',
         body: {
           customer: form,
           paymentMethod,

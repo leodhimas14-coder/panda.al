@@ -2,10 +2,12 @@ import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
 import { useApi } from '../../lib/useApi';
 import { qs } from '../../lib/api';
-import { CATEGORY_LABEL, GENDER_LABEL } from '../../lib/format';
+import { GENDER_LABEL } from '../../lib/format';
+import { useCategoryLabels } from '../../context/ConfigContext';
 
 export default function CatalogPage() {
   const [params, setParams] = useSearchParams();
+  const CATEGORY_LABEL = useCategoryLabels();
   const category = params.get('kategoria') || '';
   const gender = params.get('gjinia') || '';
   const sale = params.get('oferta') === '1';

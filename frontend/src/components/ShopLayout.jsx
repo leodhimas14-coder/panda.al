@@ -8,11 +8,13 @@ import DemoBar from './DemoBar';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useConfig } from '../context/ConfigContext';
+import { useCustomer } from '../context/CustomerContext';
 
 export default function ShopLayout() {
   const { count } = useCart();
   const { count: savedCount } = useWishlist();
   const { promoBar, contact } = useConfig();
+  const { customer } = useCustomer();
   const whatsapp = contact.whatsapp || import.meta.env.VITE_WHATSAPP;
   const { pathname, search } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,7 +60,10 @@ export default function ShopLayout() {
           <Link to="/" className="wordmark" aria-label="Panda.al, kryefaqja">PANDA</Link>
 
           <div className="header-side right">
-            <Link to="/llogaria" className="header-icon" aria-label="Llogaria ime"><Icon name="user" /></Link>
+            <Link to="/llogaria" className="header-icon" aria-label={customer ? `Llogaria ime (${customer.name})` : 'Hyr ose krijo llogari'}>
+              <Icon name="user" />
+              {customer && <span className="signed-in-dot" aria-hidden="true" />}
+            </Link>
             <Link to="/te-ruajturat" className="header-icon" aria-label={`Të ruajturat, ${savedCount}`}>
               <Icon name="heart" />
               {savedCount > 0 && <span className="badge badge-soft">{savedCount}</span>}

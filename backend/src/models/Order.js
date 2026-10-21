@@ -20,6 +20,7 @@ const orderItemSchema = new mongoose.Schema(
 const orderSchema = new mongoose.Schema(
   {
     number: { type: String, required: true, unique: true },
+    customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     customer: {
       name: { type: String, required: true, trim: true },
       phone: { type: String, required: true, trim: true },
@@ -62,6 +63,7 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'customer.phone': 1 });
+orderSchema.index({ customerId: 1, createdAt: -1 });
 orderSchema.index({ 'payment.reference': 1 }, { sparse: true });
 
 // What the customer is allowed to see on the tracking page.

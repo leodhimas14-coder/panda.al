@@ -429,3 +429,59 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outli
 .copy-row { display: grid; grid-template-columns: 90px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
 .copy-value { overflow-wrap: anywhere; font-variant-numeric: tabular-nums; user-select: all; }
 @media (max-width: 420px) { .copy-row { grid-template-columns: 1fr auto; } .copy-row > .muted { grid-column: 1 / -1; } }
+
+/* On/off switch */
+.switch { position: relative; width: 44px; height: 26px; border-radius: 13px; border: 0; background: var(--line); cursor: pointer; padding: 0; flex: 0 0 auto; }
+.switch span { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: transform 0.15s; }
+.switch.on { background: var(--accent); }
+.switch.on span { transform: translateX(18px); }
+.switch:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.switch:disabled { opacity: 0.5; }
+.push-right { margin-left: auto; }
+.pre-line { white-space: pre-line; }
+
+/* Categories admin */
+.category-list-admin { list-style: none; padding: 0; margin: 0; }
+.category-row-admin { display: grid; grid-template-columns: auto 52px 1fr; gap: 10px 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.category-row-admin:last-child { border-bottom: 0; }
+.category-row-admin.inactive .cat-main input, .category-row-admin.inactive .cat-icon { opacity: 0.5; }
+.cat-order { display: grid; }
+.cat-order .icon-btn { padding: 0 6px; font-size: 0.75rem; }
+.cat-icon input { text-align: center; font-size: 1.4rem; padding: 6px; }
+.cat-icon img { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; }
+.cat-main { display: grid; gap: 4px; min-width: 0; }
+.cat-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.cat-actions .upload { display: inline-grid; }
+@media (min-width: 900px) { .category-row-admin { grid-template-columns: auto 52px 1fr auto; } .cat-actions { grid-column: auto; } }
+.category-img { width: 44px; height: 44px; object-fit: cover; border-radius: 10px; }
+.inline-form { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.inline-form input { width: 140px; padding: 6px 8px; }
+
+.signed-in-dot { position: absolute; bottom: 8px; right: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+.profile-card summary { cursor: pointer; font-weight: 500; }
+.profile-card[open] summary { margin-bottom: 14px; }
+
+/* Admin menu: wrap onto several lines on phones so every page is visible */
+@media (max-width: 899px) {
+  .admin-nav nav { flex-wrap: wrap; overflow: visible; gap: 6px; }
+  .admin-nav nav a { padding: 7px 11px; background: rgb(255 255 255 / 0.06); }
+}
+
+/* Product list as cards on phones */
+.mobile-only { display: none; }
+@media (max-width: 699px) {
+  .mobile-only { display: inline; }
+  .table-products thead { display: none; }
+  .table-products, .table-products tbody { display: block; }
+  .table-products tr { display: grid; grid-template-columns: 56px 1fr auto; grid-template-areas: "thumb name switch" "thumb cat delete" "thumb price delete" "thumb stock delete"; column-gap: 12px; padding: 12px; border-bottom: 1px solid var(--line); }
+  .table-products td { border: 0; padding: 0; text-align: left; }
+  .table-products .thumb-cell { grid-area: thumb; width: auto; }
+  .table-products .thumb-cell img { width: 56px; height: 70px; }
+  .table-products .cell-name { grid-area: name; }
+  .table-products .cell-cat { grid-area: cat; font-size: 0.82rem; }
+  .table-products .cell-price { grid-area: price; text-align: left; font-weight: 600; }
+  .table-products .cell-stock { grid-area: stock; text-align: left; font-size: 0.82rem; }
+  .table-products .cell-switch { grid-area: switch; justify-self: end; }
+  .table-products .cell-delete { grid-area: delete; justify-self: end; align-self: end; }
+  .table-products td[colspan] { grid-column: 1 / -1; }
+}

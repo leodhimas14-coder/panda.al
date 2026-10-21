@@ -1,8 +1,17 @@
 import { useConfig } from '../../context/ConfigContext';
+import RichText from '../../lib/RichText';
 import { lek } from '../../lib/format';
 
 export default function InfoPage() {
-  const { shipping, payments } = useConfig();
+  const { pages, shipping, payments } = useConfig();
+  if (pages?.info) {
+    return (
+      <div className="container section narrow prose">
+        <h1 className="page-title">Dërgesa dhe pagesa</h1>
+        <RichText text={pages.info} />
+      </div>
+    );
+  }
   return (
     <div className="container section narrow prose">
       <h1 className="page-title">Dërgesa dhe pagesa</h1>

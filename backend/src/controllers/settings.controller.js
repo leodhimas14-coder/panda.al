@@ -80,6 +80,18 @@ async function update(req, res) {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new HttpError(400, 'Email-i i kontaktit nuk është i saktë');
     doc.contact = { whatsapp, phone: text(body.contact.phone, 40), email };
   }
+  if (body.home) {
+    doc.home = {
+      featuredTitle: text(body.home.featuredTitle, 60) || 'Më të pëlqyerat',
+      latestTitle: text(body.home.latestTitle, 60) || 'Të rejat',
+      newsletterTitle: text(body.home.newsletterTitle, 160) || 'Regjistrohu dhe mëso të parën për ofertat dhe koleksionet e reja.',
+    };
+  }
+  if (body.pages) {
+    // Plain text; the shop renders it as text (lines starting with "## " become headings).
+    const page = (v) => String(v ?? '').replace(/\r\n/g, '\n').trim().slice(0, 20000);
+    doc.pages = { about: page(body.pages.about), info: page(body.pages.info), terms: page(body.pages.terms) };
+  }
   if (body.cnyToAll !== undefined) {
     const rate = Number(body.cnyToAll);
     if (!Number.isFinite(rate) || rate <= 0 || rate > 1000) throw new HttpError(400, 'Kursi i juanit nuk është i saktë');

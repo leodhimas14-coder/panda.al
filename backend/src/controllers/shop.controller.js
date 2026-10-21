@@ -1,9 +1,11 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const Customer = require('../models/Customer');
 const { HttpError } = require('../middleware/errorHandler');
 const { createOrder, applyPaymentResult, normalizePhone } = require('../services/order.service');
 const { getProvider, cardAvailable } = require('../services/payment.service');
-const { CATEGORIES, GENDERS, ORDER_STATUSES } = require('../config/constants');
+const { GENDERS, ORDER_STATUSES } = require('../config/constants');
+const { listCategories } = require('../services/category.service');
 const { getShopSettings, publicSettings } = require('../services/settings.service');
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -16,7 +18,7 @@ async function config(_req, res) {
     // Kept for older app versions that read these top-level fields.
     shippingFee: s.shipping.fee,
     freeShippingFrom: s.shipping.freeFrom,
-    categories: CATEGORIES,
+    categories: await listCategories(),
     genders: GENDERS,
     orderStatuses: ORDER_STATUSES,
   });
@@ -49,7 +51,9 @@ async function getProduct(req, res) {
 }
 
 async function placeOrder(req, res) {
-  const { order, paymentUrl } = await createOrder(req.body);
+  const { order, paymentUrl } = await createOrder(req.body, { customerId: req.customer.id });
+  // Remember the delivery address for the next checkout.
+  await Customer.updateOne({ _id: req.customer.id }, { $set: { address: { city: order.customer.city, address: order.customer.address } } });
   res.status(201).json({ order: order.toTracking(), paymentUrl });
 }
 

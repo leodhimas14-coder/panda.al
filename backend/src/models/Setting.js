@@ -39,6 +39,17 @@ const settingSchema = new mongoose.Schema(
       phone: { type: String, trim: true },
       email: { type: String, trim: true },
     },
+    // Texts the owner can rewrite. Empty = the shop's built-in text.
+    home: {
+      featuredTitle: { type: String, trim: true },
+      latestTitle: { type: String, trim: true },
+      newsletterTitle: { type: String, trim: true },
+    },
+    pages: {
+      about: { type: String },
+      info: { type: String },
+      terms: { type: String },
+    },
     cnyToAll: { type: Number, min: 0 },
   },
   { timestamps: true, minimize: false }

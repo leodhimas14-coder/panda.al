@@ -7,6 +7,7 @@ import { useConfig } from '../context/ConfigContext';
 
 
 function Newsletter() {
+  const { home } = useConfig();
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
   const [state, setState] = useState({ status: 'idle', message: '' });
@@ -30,7 +31,7 @@ function Newsletter() {
 
   return (
     <form className="newsletter" onSubmit={onSubmit}>
-      <h2>Regjistrohu dhe mëso të parën për ofertat dhe koleksionet e reja.</h2>
+      <h2>{home.newsletterTitle}</h2>
       <div className="newsletter-field">
         <input id="newsletter-email" type="email" required placeholder="Adresa e email-it" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="Adresa e email-it" autoComplete="email" />
         <button type="submit" aria-label="Regjistrohu" disabled={state.status === 'busy'}><Icon name="caret" size={18} filled stroke={0} /></button>

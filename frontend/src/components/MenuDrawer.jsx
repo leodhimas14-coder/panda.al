@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from './Icon';
 import { useApi } from '../lib/useApi';
+import { useConfig } from '../context/ConfigContext';
 
 const TABS = [
   { key: 'femra', label: 'Femra' },
@@ -9,21 +10,18 @@ const TABS = [
   { key: 'femije', label: 'Fëmijë' },
 ];
 
-// Menu rows per tab. Each opens the shop filtered by the tab's gender.
-const ROWS = [
-  { label: 'Të rejat', params: {} },
-  { label: 'Çanta', params: { kategoria: 'canta' } },
-  { label: 'Rroba', params: { kategoria: 'rroba' } },
-  { label: 'Këpucë', params: { kategoria: 'kepuce' } },
-  { label: 'Portofola', params: { kategoria: 'portofola' } },
-  { label: 'Aksesorë', params: { kategoria: 'aksesore' } },
-  { label: 'Ofertat', params: { oferta: '1' } },
-];
 
 const TAB_KEY = 'panda_menu_tab';
 
 export default function MenuDrawer({ open, onClose, top = 0 }) {
   const [tab, setTab] = useState(() => { try { return localStorage.getItem(TAB_KEY) || 'femra'; } catch { return 'femra'; } });
+  const { categories } = useConfig();
+  // Menu rows per tab: newest, every category, offers. Each opens the shop filtered by the tab's gender.
+  const ROWS = [
+    { label: 'Të rejat', params: {} },
+    ...(categories || []).map((c) => ({ label: c.label, params: { kategoria: c.key } })),
+    { label: 'Ofertat', params: { oferta: '1' } },
+  ];
   const hot = useApi(open ? '/products?featured=1&limit=4' : null);
 
   useEffect(() => {

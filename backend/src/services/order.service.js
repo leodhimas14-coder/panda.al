@@ -29,7 +29,7 @@ function requireText(value, label, max = 200) {
  * database, never from the client. Items whose variant has Albania stock reserve
  * it immediately; the rest are bought in China.
  */
-async function createOrder(input) {
+async function createOrder(input, { customerId } = {}) {
   const customer = {
     name: requireText(input?.customer?.name, 'Emri', 100),
     phone: normalizePhone(input?.customer?.phone),
@@ -104,6 +104,7 @@ async function createOrder(input) {
     const status = paymentMethod === 'cod' ? 'e_re' : 'pa_paguar';
     const order = await Order.create({
       number: `PA-${seq}`,
+      customerId,
       customer,
       items,
       subtotal,

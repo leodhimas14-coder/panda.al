@@ -68,13 +68,27 @@ i saktë) dhe SWIFT-in.
 - **Kartë:** paratë i kalon banka/ofruesi i kartave në llogarinë që i jep atyre në kontratë.
   Dyqani nuk i drejton paratë vetë, prandaj jepu të njëjtin IBAN.
 
+## Llogaritë e blerësve
+
+Kushdo mund të shfletojë dhe të mbushë shportën. Për të blerë, klienti krijon llogari
+me **email ose numër telefoni** dhe fjalëkalim (ose hyn nëse e ka). Te 👤 sheh porositë
+e veta, adresën e ruajtur dhe ndryshon të dhënat. Nëse harron fjalëkalimin, ti i vendos
+një të ri te **Admin → Klientët**. Llogaritë e klientëve dhe të stafit janë të ndara:
+një llogari klienti nuk hap dot panelin e adminit.
+
 ## Paneli i adminit
 
 - **Porositë:** butoni **✓ Prano** / **✕ Refuzo** te çdo porosi e re. Te porosia,
   "Hapi tjetër" tregon butonin për hapin e radhës: U ble te furnitori →
   Mbërriti në magazinë → U nis me transport → Mbërriti në Shqipëri →
   Iu dha korrierit → U dorëzua.
-- **Cilësimet:** shiriti nën kokë, videoja e kryefaqes, kostoja e transportit dhe
+- **Produktet:** çelësi "Aktiv" e fsheh ose e shfaq produktin në dyqan; **Fshi** e heq
+  përgjithmonë (porositë e vjetra e ruajnë emrin, foton dhe çmimin e tyre).
+- **Kategoritë:** shto, riemërto, ndrysho emoji-n ose foton, rendit me ▲▼, fshih me çelës,
+  fshi (vetëm kur kategoria s'ka produkte). Menuja dhe kryefaqja ndjekin këtë listë.
+- **Klientët:** lista e llogarive, sa porosi kanë bërë, bllokim dhe fjalëkalim i ri.
+- **Cilësimet:** titujt e kryefaqes, tekstet e faqeve (Kush jemi, Dërgesa dhe pagesa,
+  Privatësia dhe kushtet), shiriti nën kokë, videoja e kryefaqes, kostoja e transportit dhe
   kufiri për transport falas, kohët e dorëzimit, mënyrat e pagesës, WhatsApp,
   telefoni, email-i dhe kursi i juanit.
 

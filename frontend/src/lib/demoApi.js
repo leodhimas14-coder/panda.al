@@ -3,12 +3,14 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v6';
+const KEY = 'panda_demo_db_v7';
 const DEFAULT_SETTINGS = {
   homeBanner: { url: '', posterUrl: '', link: '' },
   promoBar: { enabled: true, text: 'Transport falas mbi 6.000 L · Dërgesa në gjithë Shqipërinë' },
   shipping: { fee: 300, freeFrom: 6000, localText: '1–3 ditë pune', chinaText: '10–18 ditë' },
   payments: { card: true, cod: false, bank: false },
+  home: { featuredTitle: 'Më të pëlqyerat', latestTitle: 'Të rejat', newsletterTitle: 'Regjistrohu dhe mëso të parën për ofertat dhe koleksionet e reja.' },
+  pages: { about: '', info: '', terms: '' },
   bank: { holder: '', bankName: '', iban: '', swift: '' },
   contact: { whatsapp: '', phone: '', email: '' },
   cnyToAll: 13,
@@ -52,7 +54,11 @@ function seed() {
     { name: 'Atlete fëmijësh me drita', gender: 'femije', category: 'kepuce', price: 1900, images: [art('👟', '#efe3ea', '#d9bfcc')], description: 'Taban që ndriçon kur ecin, mbyllje me ngjitës.', variants: v(['26', '28', '30', '32', '34'].map((size) => ({ size, color: 'Rozë' }))), supplier: { name: 'Putian Shoes', url: '', costCny: 38 } },
   ].map((p) => ({ _id: id(), slug: slugify(p.name), active: true, featured: false, compareAtPrice: undefined, createdAt: new Date().toISOString(), ...p }));
 
-  const db = { products, orders: [], shipments: [], seq: 1000, settings: clone(DEFAULT_SETTINGS), subscribers: [] };
+  const emoji = { rroba: '👕', kepuce: '👟', canta: '👜', portofola: '👛', aksesore: '🧢' };
+  const categories = CATEGORIES.map((c, i) => ({ _id: id(), key: c.key, label: c.label, emoji: emoji[c.key] || '', image: '', position: i, active: true }));
+  // A sample shopper so the admin's Klientët page isn't empty. Demo only: the password is kept as plain text in this browser.
+  const customers = [{ _id: id(), name: 'Arbër Gjoka', phone: '+355693217788', password: 'demo123', address: { city: 'Shkodër', address: 'Rruga e Kavajës 45, kati 2' }, active: true, createdAt: new Date().toISOString() }];
+  const db = { products, orders: [], shipments: [], seq: 1000, settings: clone(DEFAULT_SETTINGS), subscribers: [], categories, customers };
   const day = 86400000;
   const mk = (name, phone, city, lines, status, ago, extra = {}) => {
     const order = buildOrder(db, { customer: { name, phone, city, address: 'Rruga e Kavajës 45, kati 2', note: '' }, items: lines }, true);
@@ -68,6 +74,7 @@ function seed() {
   const o2 = mk('Besnik Shehu', '0695551122', 'Vlorë', [P(4, 3)], 'ne_rruge', 6);
   const o3 = mk('Klea Murati', '0674448899', 'Tiranë', [P(0, 2)], 'e_konfirmuar', 1);
   const o4 = mk('Arbër Gjoka', '0693217788', 'Shkodër', [P(6, 2), P(5, 0)], 'e_re', 0.2);
+  o4.customerId = customers[0]._id;
   db.shipments.push({ _id: id(), code: 'CN-261010-A7K', status: 'nisur', orders: [o2._id], weightKg: 14, cargoCostAll: 4200, departedAt: new Date(Date.now() - 3 * day).toISOString(), note: '', createdAt: new Date(Date.now() - 4 * day).toISOString() });
   o2.shipment = db.shipments[0]._id;
   o2.costs.cargoAll = 4200;
@@ -155,23 +162,74 @@ function spreadCargo(s) {
 
 const ADMIN = { _id: 'admin', name: 'Admin', email: 'admin@panda.al', role: 'admin' };
 
-export async function demoApi(path, { method = 'GET', body } = {}) {
+export async function demoApi(path, { method = 'GET', body, auth, token } = {}) {
   load();
   await new Promise((r) => setTimeout(r, 120));
   const url = new URL(path, 'http://demo');
   const q = Object.fromEntries(url.searchParams);
   const seg = url.pathname.split('/').filter(Boolean);
-  const r = route(method, seg, q, body || {});
+  const r = route(method, seg, q, body || {}, { auth, token });
   save();
   return clone(r);
 }
 
-function route(method, seg, q, body) {
+const customerFrom = (token) => {
+  const c = token && token.startsWith('cust_') && (db.customers || []).find((x) => x._id === token.slice(5) && x.active);
+  return c || null;
+};
+const publicCustomer = (c) => { const { password, ...rest } = c; return rest; };
+const activeCategories = () => [...db.categories].filter((c) => c.active).sort((x, y) => x.position - y.position);
+
+function parseLogin(value) {
+  const raw = String(value || '').trim();
+  if (raw.includes('@')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw)) fail(400, 'Email-i nuk është i saktë');
+    return { email: raw.toLowerCase() };
+  }
+  const phone = normalizePhone(raw);
+  if (!phone) fail(400, 'Shkruaj një email ose një numër telefoni të saktë (p.sh. 069 123 4567)');
+  return { phone };
+}
+
+function route(method, seg, q, body, { auth, token } = {}) {
   const [a, b, c, d] = seg;
+  db.categories = db.categories || [];
+  db.customers = db.customers || [];
+  if (a === 'categories') return { categories: activeCategories() };
+  if (a === 'customers') {
+    if (b === 'register' || b === 'login') {
+      const login = parseLogin(body.login);
+      const existing = db.customers.find((x) => (login.email && x.email === login.email) || (login.phone && x.phone === login.phone));
+      if (b === 'register') {
+        if (!String(body.name || '').trim()) fail(400, 'Shkruaj emrin');
+        if (String(body.password || '').length < 6) fail(400, 'Fjalëkalimi duhet të ketë të paktën 6 shenja');
+        if (existing) fail(409, login.email ? 'Ky email ka tashmë llogari. Hyr me të.' : 'Ky numër ka tashmë llogari. Hyr me të.');
+        const cust = { _id: id(), name: body.name.trim(), ...login, password: body.password, address: { city: '', address: '' }, active: true, createdAt: new Date().toISOString() };
+        db.customers.unshift(cust);
+        return { token: `cust_${cust._id}`, customer: publicCustomer(cust) };
+      }
+      if (!existing || !existing.active || existing.password !== body.password) fail(401, 'Email/numri ose fjalëkalimi është i gabuar');
+      return { token: `cust_${existing._id}`, customer: publicCustomer(existing) };
+    }
+    const me = customerFrom(token);
+    if (!me) fail(401, 'Hyr në llogari ose krijo një llogari për të blerë');
+    if (c === 'orders') return { orders: db.orders.filter((o) => o.customerId === me._id).map((o) => ({ ...toTracking(o), phone: o.customer.phone })) };
+    if (method === 'PUT') {
+      if (body.name !== undefined) { if (!String(body.name).trim()) fail(400, 'Emri nuk mund të jetë bosh'); me.name = String(body.name).trim(); }
+      if (body.email) { const { email } = parseLogin(body.email); if (!email) fail(400, 'Email-i nuk është i saktë'); me.email = email; }
+      if (body.phone) { const ph = normalizePhone(body.phone); if (!ph) fail(400, 'Numri i telefonit nuk është i saktë'); me.phone = ph; }
+      if (body.newPassword) {
+        if (body.currentPassword !== me.password) fail(400, 'Fjalëkalimi aktual është i gabuar');
+        if (String(body.newPassword).length < 6) fail(400, 'Fjalëkalimi duhet të ketë të paktën 6 shenja');
+        me.password = body.newPassword;
+      }
+    }
+    return { customer: publicCustomer(me) };
+  }
   if (a === 'config') {
     const { cnyToAll, bank, ...pub } = S();
     if (pub.payments.bank) pub.bank = bank;
-    return { ...pub, shippingFee: pub.shipping.fee, freeShippingFrom: pub.shipping.freeFrom, categories: CATEGORIES, genders: GENDERS };
+    return { ...pub, shippingFee: pub.shipping.fee, freeShippingFrom: pub.shipping.freeFrom, categories: activeCategories(), genders: GENDERS };
   }
 
   if (a === 'products' && !b) {
@@ -193,7 +251,11 @@ function route(method, seg, q, body) {
     return { product: toPublic(p) };
   }
   if (a === 'orders' && method === 'POST') {
+    const buyer = customerFrom(auth === 'customer' ? token : null);
+    if (!buyer) fail(401, 'Hyr në llogari ose krijo një llogari për të blerë');
     const o = buildOrder(db, body);
+    o.customerId = buyer._id;
+    buyer.address = { city: o.customer.city, address: o.customer.address };
     db.orders.unshift(o);
     const paymentUrl = o.status === 'pa_paguar' && o.paymentMethod === 'card' ? `/pagesa?${new URLSearchParams({ nr: o.number, ref: o.payment.reference, provova: '1' })}` : null;
     return { order: toTracking(o), paymentUrl };
@@ -241,6 +303,8 @@ function route(method, seg, q, body) {
     }
     const p = db.products.find((x) => x._id === c);
     if (!p) fail(404, 'Produkti nuk u gjet');
+    if (method === 'DELETE') { db.products = db.products.filter((x) => x._id !== c); return { deleted: true }; }
+    if (body.category !== undefined && !db.categories.some((x) => x.key === body.category)) fail(400, 'Zgjidh një kategori që ekziston');
     if (method === 'PUT') { Object.assign(p, body, { _id: p._id, slug: p.slug }); p.variants = p.variants.map((v) => ({ _id: v._id || id(), ...v })); }
     return { product: p };
   }
@@ -328,6 +392,54 @@ function route(method, seg, q, body) {
     return { shipment: populate(s) };
   }
 
+  if (b === 'categories') {
+    const sorted = [...db.categories].sort((x, y) => x.position - y.position);
+    if (!c && method === 'GET') return { categories: sorted.map((x) => ({ ...x, products: db.products.filter((p) => p.category === x.key).length })) };
+    if (!c && method === 'POST') {
+      const label = String(body.label || '').trim();
+      if (!label) fail(400, 'Shkruaj emrin e kategorisë');
+      const key = slugify(label);
+      if (db.categories.some((x) => x.key === key)) fail(409, 'Kjo kategori ekziston tashmë');
+      const cat = { _id: id(), key, label, emoji: String(body.emoji || '').trim(), image: '', position: sorted.length, active: true };
+      db.categories.push(cat);
+      return { category: cat };
+    }
+    const cat = db.categories.find((x) => x._id === c);
+    if (!cat) fail(404, 'Kategoria nuk u gjet');
+    if (d === 'move') {
+      const i = sorted.indexOf(cat);
+      const j = body.direction === 'up' ? i - 1 : i + 1;
+      if (j >= 0 && j < sorted.length) [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+      sorted.forEach((x, pos) => { x.position = pos; });
+      return { ok: true };
+    }
+    if (method === 'DELETE') {
+      const used = db.products.filter((p) => p.category === cat.key).length;
+      if (used) fail(400, `Kjo kategori ka ${used} produkte. Kaloji te një kategori tjetër ose fshiji, pastaj fshi kategorinë.`);
+      db.categories = db.categories.filter((x) => x !== cat);
+      return { ok: true };
+    }
+    if (body.label !== undefined) { if (!String(body.label).trim()) fail(400, 'Emri nuk mund të jetë bosh'); cat.label = String(body.label).trim(); }
+    if (body.emoji !== undefined) cat.emoji = String(body.emoji).trim();
+    if (body.image !== undefined) cat.image = body.image;
+    if (body.active !== undefined) cat.active = Boolean(body.active);
+    return { category: cat };
+  }
+  if (b === 'customers') {
+    if (!c) {
+      const term = String(q.q || '').toLowerCase();
+      const list = db.customers.filter((x) => !term || [x.name, x.email, x.phone].some((f) => (f || '').toLowerCase().includes(term)));
+      return { customers: list.map((x) => {
+        const mine = db.orders.filter((o) => o.customerId === x._id && o.status !== 'pa_paguar');
+        return { ...publicCustomer(x), orders: mine.length, spent: mine.filter((o) => o.paid).reduce((sum, o) => sum + o.total, 0) };
+      }) };
+    }
+    const cust = db.customers.find((x) => x._id === c);
+    if (!cust) fail(404, 'Klienti nuk u gjet');
+    if (body.active !== undefined) cust.active = Boolean(body.active);
+    if (body.password) { if (String(body.password).length < 6) fail(400, 'Fjalëkalimi duhet të ketë të paktën 6 shenja'); cust.password = body.password; }
+    return { customer: publicCustomer(cust) };
+  }
   if (b === 'subscribers') return { subscribers: db.subscribers || [], total: (db.subscribers || []).length };
   if (b === 'settings') {
     if (method === 'PUT') {
@@ -338,6 +450,12 @@ function route(method, seg, q, body) {
         if (!ok(hb.link, true)) fail(400, 'Linku kur shtypet duhet të fillojë me https:// ose /');
         S().homeBanner = { url: (hb.url || '').trim(), posterUrl: (hb.posterUrl || '').trim(), link: (hb.link || '').trim() };
       }
+      if (body.home) S().home = {
+        featuredTitle: String(body.home.featuredTitle || '').trim() || 'Më të pëlqyerat',
+        latestTitle: String(body.home.latestTitle || '').trim() || 'Të rejat',
+        newsletterTitle: String(body.home.newsletterTitle || '').trim() || DEFAULT_SETTINGS.home.newsletterTitle,
+      };
+      if (body.pages) S().pages = { about: String(body.pages.about || '').trim(), info: String(body.pages.info || '').trim(), terms: String(body.pages.terms || '').trim() };
       if (body.promoBar) S().promoBar = { enabled: Boolean(body.promoBar.enabled), text: String(body.promoBar.text || '').trim() };
       if (body.shipping) {
         const sh = body.shipping;
