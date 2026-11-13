@@ -31,7 +31,7 @@ export default function TermsPage() {
       <p>Çmimet janë në lekë dhe përfshijnë TVSH-në. Pagesa bëhet me kartë në momentin e porosisë, përmes faqes së sigurt të bankës; ne nuk i shohim dhe nuk i ruajmë të dhënat e kartës. Nëse e anulon porosinë para se të blihet produkti, të kthejmë paratë në kartë.</p>
 
       <h3>Kthimet</h3>
-      <p>Masën mund ta ndërrosh brenda 7 ditëve nga marrja, me produktin të papërdorur dhe me etiketa. Nëse produkti vjen i dëmtuar, na dërgo foto brenda 48 orëve.</p>
+      <p>Produktin mund ta kthesh brenda 14 ditëve nga marrja, vetëm nëse nuk është hapur dhe ka vulën origjinale; kozmetika e hapur nuk kthehet për arsye higjiene. Nëse produkti vjen i dëmtuar, na dërgo foto brenda 48 orëve.</p>
 
       <h3>Kontakti</h3>
       <p>Për çdo pyetje mbi të dhënat e tua ose porositë, na shkruaj në WhatsApp ose në email.</p>

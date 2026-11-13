@@ -25,8 +25,10 @@ export default function InfoPage() {
         Transporti kushton {lek(shipping.fee)}
         {shipping.freeFrom > 0 && <>, dhe është <b>falas</b> për porosi mbi {lek(shipping.freeFrom)}</>}.
       </p>
-      <h3>Po nëse masa nuk më bën?</h3>
-      <p>Mund ta ndërroni masën brenda 7 ditëve nga marrja, me kusht që produkti të jetë i papërdorur dhe me etiketa. Na shkruani me numrin e porosisë.</p>
+      <h3>Mund ta kthej një produkt?</h3>
+      <p>Po, brenda 14 ditëve nga marrja, nëse produkti nuk është hapur dhe ka ende ambalazhin dhe vulën origjinale. Për arsye higjiene, kozmetika e hapur nuk kthehet. Na shkruani me numrin e porosisë.</p>
+      <h3>Po nëse më shkakton acarim?</h3>
+      <p>Provojeni fillimisht në një pjesë të vogël të lëkurës (p.sh. pas veshit) dhe prisni 24 orë. Nëse keni alergji, lexoni përbërësit te faqja e produktit para se ta blini.</p>
       <h3>Po nëse produkti vjen i dëmtuar?</h3>
       <p>Na dërgoni foto brenda 48 orëve dhe ne e zëvendësojmë ose ju kthejmë paratë.</p>
     </div>

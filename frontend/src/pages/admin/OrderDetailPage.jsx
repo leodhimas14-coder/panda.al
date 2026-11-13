@@ -147,7 +147,7 @@ export default function OrderDetailPage() {
       <section className="card">
         <h3>Artikujt</h3>
         <div className="table-wrap"><table className="table">
-          <thead><tr><th>Produkti</th><th>Masa / Ngjyra</th><th className="num">Sasia</th><th className="num">Çmimi</th><th>Burimi</th></tr></thead>
+          <thead><tr><th>Produkti</th><th>Madhësia / Lloji</th><th className="num">Sasia</th><th className="num">Çmimi</th><th>Burimi</th></tr></thead>
           <tbody>
             {order.items.map((i) => (
               <tr key={i._id}>

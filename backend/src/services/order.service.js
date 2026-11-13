@@ -68,7 +68,7 @@ async function createOrder(input, { customerId } = {}) {
       let variant = null;
       if (product.variants.length > 0) {
         variant = product.variants.id(raw?.variantId);
-        if (!variant) throw new HttpError(400, `Zgjidhni masën/ngjyrën për "${product.name}"`);
+        if (!variant) throw new HttpError(400, `Zgjidhni madhësinë/llojin për "${product.name}"`);
       }
 
       let fromLocalStock = false;

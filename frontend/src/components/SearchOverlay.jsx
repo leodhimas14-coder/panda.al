@@ -4,7 +4,7 @@ import Icon from './Icon';
 import { api } from '../lib/api';
 import { lek } from '../lib/format';
 
-const SUGGESTIONS = ['Çantë', 'Atlete', 'Xhaketë', 'Portofol', 'Bluzë'];
+const SUGGESTIONS = ['Krem', 'Maskë', 'Patch', 'Serum', 'Balsam buzësh'];
 
 export default function SearchOverlay({ open, onClose }) {
   const [q, setQ] = useState('');

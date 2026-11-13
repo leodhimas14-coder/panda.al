@@ -43,6 +43,5 @@ export const ORDER_ACTIONS = {
   ne_dorezim: { label: '✓ U dorëzua te klienti', to: 'e_dorezuar' },
 };
 
-export const CATEGORY_LABEL = { rroba: 'Rroba', kepuce: 'Këpucë', canta: 'Çanta', portofola: 'Portofola', aksesore: 'Aksesorë' };
 
 export const SHIPMENT_LABEL = { ne_pergatitje: 'Në përgatitje', nisur: 'U nis nga Kina', mberritur: 'Mbërriti në Shqipëri' };

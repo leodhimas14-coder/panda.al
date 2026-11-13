@@ -15,7 +15,7 @@ const js = files.filter((f) => f.endsWith('.js')).map((f) => readFileSync(join(a
 const favicon = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(readFileSync('public/favicon.svg', 'utf8'))}`;
 
 const html = `<title>Panda.al</title>
-<meta name="description" content="Demo e dyqanit Panda.al: rroba, këpucë, çanta dhe portofola.">
+<meta name="description" content="Demo e dyqanit Panda.al: kozmetikë dhe kujdes për lëkurën.">
 <link rel="icon" href="${favicon}">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600;6..96,700&family=Jost:wght@400;500;600&display=swap">
 <style>${css}</style>

@@ -11,7 +11,7 @@ const slugify = (text) =>
     .replace(/(^-|-$)/g, '')
     .slice(0, 80);
 
-const EDITABLE = ['name', 'slug', 'category', 'gender', 'description', 'images', 'price', 'compareAtPrice', 'variants', 'supplier', 'featured', 'active'];
+const EDITABLE = ['name', 'slug', 'category', 'gender', 'description', 'ingredients', 'howToUse', 'images', 'price', 'compareAtPrice', 'variants', 'supplier', 'featured', 'active'];
 
 function pick(body) {
   const data = {};

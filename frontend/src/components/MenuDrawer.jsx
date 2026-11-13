@@ -7,7 +7,6 @@ import { useConfig } from '../context/ConfigContext';
 const TABS = [
   { key: 'femra', label: 'Femra' },
   { key: 'meshkuj', label: 'Meshkuj' },
-  { key: 'femije', label: 'Fëmijë' },
 ];
 
 

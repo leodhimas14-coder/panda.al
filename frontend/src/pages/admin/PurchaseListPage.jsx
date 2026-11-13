@@ -28,14 +28,14 @@ export default function PurchaseListPage() {
         <h1 className="admin-title">Për të blerë në Kinë</h1>
         {items.length > 0 && <ConfirmButton className="btn btn-primary" disabled={busy} onConfirm={markAll} confirmText={`Shëno ${orderIds.length} porosi si të blera?`}>U blenë të gjitha</ConfirmButton>}
       </div>
-      <p className="muted small">Artikujt nga porositë e <b>konfirmuara</b> që nuk i ke në stok në Shqipëri, të grupuar sipas produktit, masës dhe ngjyrës.</p>
+      <p className="muted small">Artikujt nga porositë e <b>konfirmuara</b> që nuk i ke në stok në Shqipëri, të grupuar sipas produktit, madhësisë dhe llojit.</p>
       {error && <div className="alert alert-error">{error.message}</div>}
       {loading && <p className="muted">Duke u ngarkuar…</p>}
       {data && items.length === 0 && <p className="empty">S'ka asgjë për të blerë. Konfirmoni porositë e reja që të shfaqen këtu.</p>}
       {items.length > 0 && (
         <>
           <div className="table-wrap"><table className="table">
-            <thead><tr><th /><th>Produkti</th><th>Masa / Ngjyra</th><th className="num">Sasia</th><th className="num">¥</th><th>Furnitori</th><th>Porositë</th></tr></thead>
+            <thead><tr><th /><th>Produkti</th><th>Madhësia / Lloji</th><th className="num">Sasia</th><th className="num">¥</th><th>Furnitori</th><th>Porositë</th></tr></thead>
             <tbody>
               {items.map((i) => (
                 <tr key={`${i.productId}-${i.size}-${i.color}`}>

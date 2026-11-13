@@ -16,7 +16,7 @@ const ConfigContext = createContext({ ...DEFAULTS, reload: () => {} });
 
 // The last settings seen are kept so the next visit shows the right texts
 // and categories straight away, then refreshed from the server.
-const CACHE_KEY = 'panda_config_v1';
+const CACHE_KEY = 'panda_config_v2';
 const cached = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; } };
 
 export function ConfigProvider({ children }) {

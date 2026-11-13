@@ -33,7 +33,7 @@ export default function CatalogPage() {
       <h1 className="page-title">{title}</h1>
       {gender && (
         <div className="gender-tabs">
-          {['femra', 'meshkuj', 'femije'].map((g) => (
+          {['femra', 'meshkuj'].map((g) => (
             <button type="button" key={g} className={gender === g ? 'active' : ''} onClick={() => update('gjinia', g)}>{GENDER_LABEL[g]}</button>
           ))}
         </div>

@@ -35,7 +35,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (product) document.title = `${product.name} · Panda.al`;
-    return () => { document.title = 'Panda.al · Rroba, këpucë, çanta dhe portofola'; };
+    return () => { document.title = 'Panda.al · Kozmetikë dhe kujdes për lëkurën'; };
   }, [product]);
 
   if (loading) return <div className="container section"><div className="product-detail skeleton-block" /></div>;
@@ -58,7 +58,7 @@ export default function ProductPage() {
 
   const onAdd = (goToCart) => {
     if (needsChoice) {
-      setHint(sizes.length && !size ? 'Zgjidhni masën' : 'Zgjidhni ngjyrën');
+      setHint(sizes.length && !size ? 'Zgjidhni madhësinë' : 'Zgjidhni llojin');
       return;
     }
     add(product, variant, quantity);
@@ -98,7 +98,7 @@ export default function ProductPage() {
 
           {sizes.length > 0 && (
             <div className="option-group">
-              <div className="option-label">Masa {size && <b>{size}</b>}</div>
+              <div className="option-label">Madhësia {size && <b>{size}</b>}</div>
               <div className="options">
                 {sizes.map((s) => (
                   <button type="button" key={s} className={`option ${size === s ? 'active' : ''}`} disabled={!sizeAvailable(s)} onClick={() => { setSize(s); setHint(''); }}>{s}</button>
@@ -108,7 +108,7 @@ export default function ProductPage() {
           )}
           {colors.length > 0 && (
             <div className="option-group">
-              <div className="option-label">Ngjyra {color && <b>{color}</b>}</div>
+              <div className="option-label">Lloji {color && <b>{color}</b>}</div>
               <div className="options">
                 {colors.map((c) => (
                   <button type="button" key={c} className={`option ${color === c ? 'active' : ''}`} disabled={!colorAvailable(c)} onClick={() => { setColor(c); setHint(''); }}>{c}</button>
@@ -142,10 +142,22 @@ export default function ProductPage() {
               <p>{product.description}</p>
             </div>
           )}
+          {product.howToUse && (
+            <details className="product-more" open>
+              <summary>Si përdoret</summary>
+              <p className="pre-line">{product.howToUse}</p>
+            </details>
+          )}
+          {product.ingredients && (
+            <details className="product-more">
+              <summary>Përbërësit</summary>
+              <p className="ingredients">{product.ingredients}</p>
+            </details>
+          )}
           <ul className="perks-list">
             <li>{payments.card ? '💳 Pagesë e sigurt me kartë' : '💵 Paguan në dorëzim'}</li>
             <li>🔍 Kontrollohet para nisjes</li>
-            <li>↩️ Ndërrim mase brenda 7 ditëve</li>
+            <li>↩️ Kthim brenda 14 ditëve, nëse produkti nuk është hapur</li>
           </ul>
         </div>
       </div>

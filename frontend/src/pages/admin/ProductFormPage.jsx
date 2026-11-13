@@ -7,7 +7,7 @@ import UploadButton from '../../components/UploadButton';
 import ConfirmButton from '../../components/ConfirmButton';
 
 const EMPTY = {
-  name: '', category: 'rroba', gender: 'unisex', description: '', images: [], price: '', compareAtPrice: '',
+  name: '', category: '', gender: 'femra', description: '', ingredients: '', howToUse: '', images: [], price: '', compareAtPrice: '',
   variants: [], supplier: { name: '', url: '', costCny: '' }, featured: false, active: true,
 };
 
@@ -102,13 +102,15 @@ export default function ProductFormPage() {
           </label>
           <label>Për kë
             <select value={form.gender} onChange={set('gender')}>
-              {Object.entries(GENDER_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {Object.entries(GENDER_LABEL).filter(([k]) => k !== 'femije' || form.gender === 'femije').map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
           <label>Çmimi (L)<input required type="number" min="0" value={form.price} onChange={set('price')} /></label>
           <label>Çmimi i vjetër (L)<input type="number" min="0" value={form.compareAtPrice ?? ''} onChange={set('compareAtPrice')} placeholder="opsionale" /></label>
         </div>
         <label>Përshkrimi<textarea rows={3} value={form.description} onChange={set('description')} /></label>
+        <label>Si përdoret<textarea id="prod-howto" rows={3} value={form.howToUse || ''} onChange={set('howToUse')} placeholder="p.sh. Në mëngjes dhe në mbrëmje, mbi lëkurë të pastër." /></label>
+        <label>Përbërësit (siç shkruhen në kuti)<textarea id="prod-ingredients" rows={3} value={form.ingredients || ''} onChange={set('ingredients')} placeholder="Aqua, Glycerin, Niacinamide, …" /></label>
         <div className="row">
           <label className="check"><input type="checkbox" checked={form.featured} onChange={set('featured')} /> Shfaqe në kryefaqe</label>
           <label className="check"><input type="checkbox" checked={form.active} onChange={set('active')} /> Aktiv në dyqan</label>
@@ -140,16 +142,16 @@ export default function ProductFormPage() {
       </section>
 
       <section className="card form">
-        <h3>Masat dhe ngjyrat</h3>
+        <h3>Madhësitë dhe llojet</h3>
         <p className="muted small">"Stok AL" = copë që i ke tashmë në Shqipëri. Me 0, produkti porositet nga Kina.</p>
         <div className="form-row">
-          <label>Masat (me presje)<input value={bulk.sizes} onChange={(e) => setBulk((b) => ({ ...b, sizes: e.target.value }))} placeholder="S, M, L, XL" /></label>
-          <label>Ngjyrat (me presje)<input value={bulk.colors} onChange={(e) => setBulk((b) => ({ ...b, colors: e.target.value }))} placeholder="E zezë, E bardhë" /></label>
+          <label>Madhësitë (me presje)<input value={bulk.sizes} onChange={(e) => setBulk((b) => ({ ...b, sizes: e.target.value }))} placeholder="30 ml, 50 ml" /></label>
+          <label>Llojet (me presje)<input value={bulk.colors} onChange={(e) => setBulk((b) => ({ ...b, colors: e.target.value }))} placeholder="Hidratuese, Ndriçuese" /></label>
           <button type="button" className="btn btn-ghost align-end" onClick={generateVariants}>Krijo kombinimet</button>
         </div>
         {form.variants.length > 0 && (
           <div className="table-wrap"><table className="table compact">
-            <thead><tr><th>Masa</th><th>Ngjyra</th><th>Stok AL</th><th /></tr></thead>
+            <thead><tr><th>Madhësia</th><th>Lloji</th><th>Stok AL</th><th /></tr></thead>
             <tbody>
               {form.variants.map((v, i) => (
                 <tr key={v._id || i}>

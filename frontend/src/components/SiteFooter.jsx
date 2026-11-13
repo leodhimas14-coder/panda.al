@@ -67,7 +67,7 @@ export default function SiteFooter() {
           <Section title="Shërbimi ndaj klientit">
             <Link to="/gjurmo">Gjurmo porosinë</Link>
             <Link to="/info">Dërgesa dhe pagesa</Link>
-            <Link to="/info">Ndërrimi i masës dhe kthimet</Link>
+            <Link to="/info">Kthimet</Link>
             {whatsapp && <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noreferrer">Na shkruaj në WhatsApp</a>}
             {contact.phone && <span className="footer-contact">Tel: {contact.phone}</span>}
             {contact.email && <span className="footer-contact">Email: {contact.email}</span>}

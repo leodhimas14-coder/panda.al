@@ -4,7 +4,7 @@ import { useApi } from '../lib/useApi';
 const TILES = [
   { label: 'Femra', to: '/dyqani?gjinia=femra', query: 'gender=femra', gender: 'femra' },
   { label: 'Meshkuj', to: '/dyqani?gjinia=meshkuj', query: 'gender=meshkuj', gender: 'meshkuj' },
-  { label: 'Fëmijë', to: '/dyqani?gjinia=femije', query: 'gender=femije', gender: 'femije' },
+  { label: 'Të rejat', to: '/dyqani', query: 'sort=', gender: null },
   { label: 'Ofertat', to: '/dyqani?oferta=1', query: 'sale=1' },
 ];
 

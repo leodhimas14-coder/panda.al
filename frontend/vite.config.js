@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'Panda.al',
         short_name: 'Panda',
-        description: 'Rroba, këpucë, çanta dhe portofola. Pagesë në dorëzim në gjithë Shqipërinë.',
+        description: 'Kremra, maska fytyre, patch për sytë dhe serume. Dërgesa në gjithë Shqipërinë.',
         lang: 'sq',
         start_url: '/',
         scope: '/',

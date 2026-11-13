@@ -1,7 +1,7 @@
 const Category = require('../models/Category');
 const { CATEGORIES } = require('../config/constants');
 
-const DEFAULT_EMOJI = { rroba: '👕', kepuce: '👟', canta: '👜', portofola: '👛', aksesore: '🧢' };
+const DEFAULT_EMOJI = { kremra: '🧴', maska: '🧖‍♀️', syte: '👁️', serume: '💧', pastrues: '🫧', buzet: '💋', trupi: '🛁' };
 
 /** Creates the starting categories the first time the shop runs. */
 async function ensureDefaultCategories() {

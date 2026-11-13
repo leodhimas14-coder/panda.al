@@ -60,12 +60,12 @@ test('login rejects a wrong password', async () => {
 });
 
 test('admin creates products; staff cannot', async () => {
-  const forbidden = await asStaff(request(app).post('/api/admin/products')).send({ name: 'X', category: 'rroba', price: 1 });
+  const forbidden = await asStaff(request(app).post('/api/admin/products')).send({ name: 'X', category: 'kremra', price: 1 });
   assert.equal(forbidden.status, 403);
 
   let res = await asAdmin(request(app).post('/api/admin/products')).send({
     name: 'Xhaketë Lëkure',
-    category: 'rroba',
+    category: 'kremra',
     price: 5000,
     images: ['https://example.com/a.jpg'],
     variants: [{ size: 'M', color: 'E zezë', stock: 2 }, { size: 'L', color: 'E zezë', stock: 0 }],
@@ -75,13 +75,13 @@ test('admin creates products; staff cannot', async () => {
   assert.equal(res.body.product.slug, 'xhakete-lekure');
   jacket = res.body.product;
 
-  res = await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Portofol', category: 'portofola', price: 1500 });
+  res = await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Portofol', category: 'maska', price: 1500 });
   assert.equal(res.status, 201);
   wallet = res.body.product;
 });
 
 test('public catalogue hides supplier details', async () => {
-  const res = await request(app).get('/api/products?category=rroba');
+  const res = await request(app).get('/api/products?category=kremra');
   assert.equal(res.status, 200);
   assert.equal(res.body.products.length, 1);
   assert.equal(res.body.products[0].supplier, undefined);
@@ -92,8 +92,8 @@ test('public catalogue hides supplier details', async () => {
 });
 
 test('menu filters: gender includes unisex, sale needs a lower price', async () => {
-  await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Çantë femrash', category: 'canta', gender: 'femra', price: 2000, compareAtPrice: 2500 });
-  await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Rrip meshkujsh', category: 'aksesore', gender: 'meshkuj', price: 900, compareAtPrice: 900 });
+  await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Çantë femrash', category: 'syte', gender: 'femra', price: 2000, compareAtPrice: 2500 });
+  await asAdmin(request(app).post('/api/admin/products')).send({ name: 'Rrip meshkujsh', category: 'buzet', gender: 'meshkuj', price: 900, compareAtPrice: 900 });
 
   const women = (await request(app).get('/api/products?gender=femra')).body.products.map((p) => p.name).sort();
   assert.deepEqual(women, ['Portofol', 'Xhaketë Lëkure', 'Çantë femrash'].sort(), 'unisex products appear for women too');

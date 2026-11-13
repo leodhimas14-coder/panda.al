@@ -1,6 +1,7 @@
 # Panda.al
 
-Dyqan online (website + aplikacion) për **rroba, këpucë, çanta dhe portofola**.
+Dyqan online (website + aplikacion) për **kozmetikë dhe kujdes për lëkurën**: kremra,
+maska fytyre, patch për sytë, serume, kryesisht për femra dhe një pjesë për meshkuj.
 Mallrat blihen në Kinë, mblidhen dhe kontrollohen në magazinën tonë atje,
 vijnë me kargo në Shqipëri dhe i dorëzohen klientit. Klienti **paguan me kartë**
 në momentin e porosisë (pagesa në dorëzim mund të ndizet nga paneli).
@@ -8,7 +9,7 @@ në momentin e porosisë (pagesa në dorëzim mund të ndizet nga paneli).
 ## Çfarë ka brenda
 
 **Për klientët** (website që del në Google + aplikacion që instalohet në telefon):
-- Katalog me kategori, kërkim, masa dhe ngjyra
+- Katalog me kategori, kërkim, madhësi (p.sh. 50 ml) dhe lloje, përbërës dhe mënyrë përdorimi
 - Shportë dhe porosi me pagesë në dorëzim (pa llogari, vetëm emër/telefon/adresë)
 - Gjurmim i porosisë me numrin e porosisë + telefonin
 - Butoni "Instalo aplikacionin" (Android/desktop direkt, iPhone me udhëzime)
@@ -17,9 +18,9 @@ në momentin e porosisë (pagesa në dorëzim mund të ndizet nga paneli).
 **Për ty dhe stafin** (`/admin`):
 - **Paneli**: të ardhurat, shpenzimet dhe fitimi i muajit, porositë sipas statusit, më të shiturat
 - **Porositë**: konfirmo, ndrysho statusin, telefono/WhatsApp klientin, shëno kostot
-- **Për të blerë**: lista e gjithçkaje që duhet blerë në Kinë, e grupuar sipas produktit/masës/ngjyrës, me linkun e furnitorit
+- **Për të blerë**: lista e gjithçkaje që duhet blerë në Kinë, e grupuar sipas produktit/madhësisë/llojit, me linkun e furnitorit
 - **Dërgesat (kargo)**: krijo një dërgesë, ngarko porositë, shëno "U nis" / "Mbërriti". Porositë dhe gjurmimi i klientit ndryshojnë automatikisht
-- **Produktet**: shto/ndrysho produkte, foto, masa, ngjyra, stok në Shqipëri, çmimi i furnitorit (nuk i shfaqet klientit)
+- **Produktet**: shto/ndrysho produkte, foto, madhësi, lloje, përbërës, si përdoret, stok në Shqipëri, çmimi i furnitorit (nuk i shfaqet klientit)
 - Njoftim në Telegram për çdo porosi të re (opsionale)
 
 ### Rruga e një porosie

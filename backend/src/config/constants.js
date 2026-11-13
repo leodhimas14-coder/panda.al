@@ -1,19 +1,22 @@
 // Shared enums and business settings. Money is stored in whole lekë (ALL);
 // supplier prices are stored in yuan (CNY) because that's what 1688 shows.
+// CATEGORIES are only the starting set: the owner edits them in Admin → Kategoritë.
 
 const CATEGORIES = [
-  { key: 'rroba', label: 'Rroba' },
-  { key: 'kepuce', label: 'Këpucë' },
-  { key: 'canta', label: 'Çanta' },
-  { key: 'portofola', label: 'Portofola' },
-  { key: 'aksesore', label: 'Aksesorë' },
+  { key: 'kremra', label: 'Kremra' },
+  { key: 'maska', label: 'Maska fytyre' },
+  { key: 'syte', label: 'Për sytë' },
+  { key: 'serume', label: 'Serume' },
+  { key: 'pastrues', label: 'Pastrues' },
+  { key: 'buzet', label: 'Buzët' },
+  { key: 'trupi', label: 'Kujdesi për trupin' },
 ];
 
 // Who a product is for. Unisex products show up under every tab of the menu.
 const GENDERS = [
   { key: 'femra', label: 'Femra' },
   { key: 'meshkuj', label: 'Meshkuj' },
-  { key: 'femije', label: 'Fëmijë' },
+  { key: 'femije', label: 'Fëmijë' }, // kept for older products; not offered in the shop
   { key: 'unisex', label: 'Unisex' },
 ];
 
