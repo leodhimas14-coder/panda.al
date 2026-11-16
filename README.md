@@ -69,6 +69,19 @@ i saktë) dhe SWIFT-in.
 - **Kartë:** paratë i kalon banka/ofruesi i kartave në llogarinë që i jep atyre në kontratë.
   Dyqani nuk i drejton paratë vetë, prandaj jepu të njëjtin IBAN.
 
+## Testi i lëkurës
+
+Te `/testi-i-lekures` (lidhje në menu dhe në kryefaqe) klienti përgjigjet 5 pyetjeve:
+për kë, lloji i lëkurës, shqetësimet (deri në 3), ngjyra e lëkurës dhe nëntoni.
+Merr një rutinë (pastrim → serum → krem → sy → maskë) dhe nuancën e fondatinës,
+me buton "Shto të gjitha në shportë". Te faqja e produktit del "Përshtatet për lëkurën tënde".
+
+Te paneli, te çdo produkt shënon: hapin në rutinë, për çfarë lëkure është (bosh = për çdo
+lëkurë) dhe për çfarë shqetësimi ndihmon. Për fondatinën, çdo nuancë është një "Lloj" me
+ngjyrën e lëkurës (1 shumë e çelët … 5 e errët) dhe nëntonin. Produktet e bëra vetëm për
+lëkurë të tjera nuk i rekomandohen kurrë klientit. Paneli tregon edhe një përmbledhje anonime
+të përgjigjeve për 30 ditët e fundit.
+
 ## Llogaritë e blerësve
 
 Kushdo mund të shfletojë dhe të mbushë shportën. Për të blerë, klienti krijon llogari

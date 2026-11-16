@@ -6,6 +6,7 @@ import { lek } from '../../lib/format';
 import Icon from '../../components/Icon';
 import SaveButton from '../../components/SaveButton';
 import { useConfig } from '../../context/ConfigContext';
+import { SKIN_TYPES, CONCERNS, SKIN_TONES, labelOf, loadAnswers, scoreProduct, bestShade } from '../../lib/skinQuiz';
 
 const uniq = (arr) => [...new Set(arr.filter(Boolean))];
 
@@ -28,10 +29,15 @@ export default function ProductPage() {
   const sizes = useMemo(() => uniq(variants.map((v) => v.size)), [variants]);
   const colors = useMemo(() => uniq(variants.map((v) => v.color)), [variants]);
 
+  const answers = useMemo(loadAnswers, []);
+
   useEffect(() => {
     if (sizes.length === 1) setSize(sizes[0]);
     if (colors.length === 1) setColor(colors[0]);
-  }, [sizes, colors]);
+    // Foundation: preselect the shade the skin test found.
+    const shade = product && answers?.tone ? bestShade(product, answers) : null;
+    if (shade?.color) setColor(shade.color);
+  }, [sizes, colors, product, answers]);
 
   useEffect(() => {
     if (product) document.title = `${product.name} · Panda.al`;
@@ -91,6 +97,9 @@ export default function ProductPage() {
             <h1>{product.name}</h1>
             <SaveButton product={product} className="save-btn-lg" size={24} />
           </div>
+          {answers && (product.skinTypes?.length > 0 || product.concerns?.length > 0) && scoreProduct(product, answers) >= 2 && (
+            <p className="fits-you">✓ Përshtatet për lëkurën tënde</p>
+          )}
           <div className="price-row big">
             <span className="price">{lek(product.price)}</span>
             {discount > 0 && <><span className="price-old">{lek(product.compareAtPrice)}</span><span className="tag tag-sale static">-{discount}%</span></>}
@@ -110,9 +119,15 @@ export default function ProductPage() {
             <div className="option-group">
               <div className="option-label">Lloji {color && <b>{color}</b>}</div>
               <div className="options">
-                {colors.map((c) => (
-                  <button type="button" key={c} className={`option ${color === c ? 'active' : ''}`} disabled={!colorAvailable(c)} onClick={() => { setColor(c); setHint(''); }}>{c}</button>
-                ))}
+                {colors.map((c) => {
+                  const tone = variants.find((v) => v.color === c)?.tone;
+                  return (
+                    <button type="button" key={c} className={`option ${color === c ? 'active' : ''} ${tone ? 'option-shade' : ''}`} disabled={!colorAvailable(c)} onClick={() => { setColor(c); setHint(''); }}>
+                      {tone && <span className="quiz-swatch sm" style={{ background: SKIN_TONES[tone - 1].swatch }} aria-hidden="true" />}
+                      {c}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -141,6 +156,15 @@ export default function ProductPage() {
               <h3>Përshkrimi</h3>
               <p>{product.description}</p>
             </div>
+          )}
+          {(product.skinTypes?.length > 0 || product.concerns?.length > 0) && (
+            <div className="skin-info">
+              <div><span className="muted small">Për lëkurë</span> {product.skinTypes?.length ? product.skinTypes.map((k) => labelOf(SKIN_TYPES, k).toLowerCase()).join(', ') : 'të çdo lloji'}</div>
+              {product.concerns?.length > 0 && <div><span className="muted small">Ndihmon për</span> {product.concerns.map((k) => labelOf(CONCERNS, k).toLowerCase()).join(', ')}</div>}
+            </div>
+          )}
+          {variants.some((v) => v.tone) && !answers?.tone && (
+            <Link to="/testi-i-lekures" className="small link-text">Nuk e di nuancën tënde? Bëj testin e lëkurës →</Link>
           )}
           {product.howToUse && (
             <details className="product-more" open>

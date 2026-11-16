@@ -5,9 +5,10 @@ import { GENDER_LABEL, lek } from '../../lib/format';
 import { useCategoryLabels } from '../../context/ConfigContext';
 import UploadButton from '../../components/UploadButton';
 import ConfirmButton from '../../components/ConfirmButton';
+import { SKIN_TYPES, CONCERNS, ROUTINE_STEPS, SKIN_TONES, UNDERTONES } from '../../lib/skinQuiz';
 
 const EMPTY = {
-  name: '', category: '', gender: 'femra', description: '', ingredients: '', howToUse: '', images: [], price: '', compareAtPrice: '',
+  name: '', category: '', gender: 'femra', description: '', ingredients: '', howToUse: '', skinTypes: [], concerns: [], routineStep: '', images: [], price: '', compareAtPrice: '',
   variants: [], supplier: { name: '', url: '', costCny: '' }, featured: false, active: true,
 };
 
@@ -46,6 +47,7 @@ export default function ProductFormPage() {
     addImages([url]);
     setImageLink('');
   };
+  const toggleIn = (key, value) => setForm((f) => ({ ...f, [key]: (f[key] || []).includes(value) ? f[key].filter((x) => x !== value) : [...(f[key] || []), value] }));
   const setVariant = (i, key, value) => setForm((f) => ({ ...f, variants: f.variants.map((v, j) => (j === i ? { ...v, [key]: value } : v)) }));
 
   // "S, M, L" × "E zezë, E bardhë" → one variant per combination, keeping existing stock.
@@ -70,7 +72,7 @@ export default function ProductFormPage() {
       price: Number(form.price),
       compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : undefined,
       images: form.images.filter(Boolean),
-      variants: form.variants.map((v) => ({ ...v, stock: Number(v.stock) || 0 })),
+      variants: form.variants.map((v) => ({ ...v, stock: Number(v.stock) || 0, tone: v.tone ? Number(v.tone) : undefined, undertone: v.undertone || '' })),
       supplier: { ...form.supplier, costCny: Number(form.supplier.costCny) || 0 },
     };
     try {
@@ -118,6 +120,30 @@ export default function ProductFormPage() {
       </section>
 
       <section className="card form">
+        <h3>Testi i lëkurës</h3>
+        <p className="muted small">Me këto, testi i lëkurës e rekomandon produktin te klientët e duhur. Mos shëno asnjë lloj lëkure nëse produkti është për çdo lëkurë.</p>
+        <label>Hapi në rutinë
+          <select id="prod-step" value={form.routineStep || ''} onChange={set('routineStep')}>
+            <option value="">— Nuk është pjesë e rutinës</option>
+            {ROUTINE_STEPS.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
+          </select>
+        </label>
+        <fieldset className="check-group">
+          <legend>Për lëkurë</legend>
+          {SKIN_TYPES.map((t) => (
+            <label key={t.key} className="check"><input type="checkbox" checked={(form.skinTypes || []).includes(t.key)} onChange={() => toggleIn('skinTypes', t.key)} /> {t.label}</label>
+          ))}
+        </fieldset>
+        <fieldset className="check-group">
+          <legend>Ndihmon për</legend>
+          {CONCERNS.map((c) => (
+            <label key={c.key} className="check"><input type="checkbox" checked={(form.concerns || []).includes(c.key)} onChange={() => toggleIn('concerns', c.key)} /> {c.label}</label>
+          ))}
+        </fieldset>
+        <p className="muted small">Për fondatinë: shto çdo nuancë si "Lloj" (p.sh. 110 Fildish) dhe zgjidh te tabela e nuancave për çfarë ngjyre lëkure është.</p>
+      </section>
+
+      <section className="card form">
         <h3>Fotot</h3>
         <p className="muted small">Ngarko fotot nga telefoni ose kompjuteri. E para është fotoja kryesore; shtyp "Kryesore" te një tjetër për ta vendosur të parën.</p>
         {form.images.length > 0 && (
@@ -151,13 +177,25 @@ export default function ProductFormPage() {
         </div>
         {form.variants.length > 0 && (
           <div className="table-wrap"><table className="table compact">
-            <thead><tr><th>Madhësia</th><th>Lloji</th><th>Stok AL</th><th /></tr></thead>
+            <thead><tr><th>Madhësia</th><th>Lloji / nuanca</th><th>Stok AL</th><th title="Vetëm për fondatinë, korrektor etj.">Lëkura (fondatinë)</th><th /></tr></thead>
             <tbody>
               {form.variants.map((v, i) => (
                 <tr key={v._id || i}>
                   <td><input value={v.size} onChange={(e) => setVariant(i, 'size', e.target.value)} /></td>
                   <td><input value={v.color} onChange={(e) => setVariant(i, 'color', e.target.value)} /></td>
                   <td><input type="number" min="0" value={v.stock} onChange={(e) => setVariant(i, 'stock', e.target.value)} /></td>
+                  <td className="shade-cell">
+                    <select aria-label="Ngjyra e lëkurës" value={v.tone || ''} onChange={(e) => setVariant(i, 'tone', e.target.value)}>
+                      <option value="">—</option>
+                      {SKIN_TONES.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+                    </select>
+                    {v.tone && (
+                      <select aria-label="Nëntoni" value={v.undertone || ''} onChange={(e) => setVariant(i, 'undertone', e.target.value)}>
+                        <option value="">Çdo nënton</option>
+                        {UNDERTONES.map((u) => <option key={u.key} value={u.key}>{u.label}</option>)}
+                      </select>
+                    )}
+                  </td>
                   <td><button type="button" className="icon-btn" onClick={() => setForm((f) => ({ ...f, variants: f.variants.filter((_, j) => j !== i) }))}>✕</button></td>
                 </tr>
               ))}

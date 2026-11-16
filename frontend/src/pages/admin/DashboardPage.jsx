@@ -8,6 +8,7 @@ export default function DashboardPage() {
   const isAdmin = user.role === 'admin';
   const orders = useApi('/admin/orders?status=e_re', { auth: true });
   const report = useApi(isAdmin ? '/admin/reports/summary' : null, { auth: true });
+  const skin = useApi(isAdmin ? '/admin/reports/skin-test?days=30' : null, { auth: true });
   const counts = orders.data?.counts || {};
   const r = report.data;
 
@@ -45,6 +46,30 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {isAdmin && skin.data && (
+        <>
+          <h2 className="admin-subtitle">Testi i lëkurës · 30 ditët e fundit ({skin.data.total} përgjigje)</h2>
+          {skin.data.total === 0 ? (
+            <p className="muted small">Ende askush s'e ka bërë testin. Këtu do të shohësh çfarë lëkure dhe çfarë shqetësimesh kanë klientët, që të dish çfarë të porositësh.</p>
+          ) : (
+            <div className="skin-report">
+              {[['Shqetësimet', skin.data.concerns], ['Lloji i lëkurës', skin.data.skinTypes], ['Ngjyra e lëkurës', skin.data.tones]].map(([title, rows]) => (
+                <div key={title} className="card">
+                  <h3>{title}</h3>
+                  {rows.map((row) => (
+                    <div key={row.key} className="bar-row">
+                      <span>{row.label}</span>
+                      <span className="bar"><span style={{ width: `${skin.data.total ? (row.count / skin.data.total) * 100 : 0}%` }} /></span>
+                      <b>{row.count}</b>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {isAdmin && r?.topProducts?.length > 0 && (
         <>

@@ -3,7 +3,7 @@
 // click through the whole shop and admin panel without a server. Data lives
 // in this browser only.
 
-const KEY = 'panda_demo_db_v8';
+const KEY = 'panda_demo_db_v9';
 const DEFAULT_SETTINGS = {
   homeBanner: { url: '', posterUrl: '', link: '' },
   promoBar: { enabled: true, text: 'Transport falas mbi 6.000 L · Dërgesa në gjithë Shqipërinë' },
@@ -24,6 +24,7 @@ const CATEGORIES = [
   { key: 'kremra', label: 'Kremra' }, { key: 'maska', label: 'Maska fytyre' }, { key: 'syte', label: 'Për sytë' },
   { key: 'serume', label: 'Serume' }, { key: 'pastrues', label: 'Pastrues' }, { key: 'buzet', label: 'Buzët' },
   { key: 'trupi', label: 'Kujdesi për trupin' },
+  { key: 'grim', label: 'Grimi' },
 ];
 const GENDERS = [
   { key: 'femra', label: 'Femra' }, { key: 'meshkuj', label: 'Meshkuj' }, { key: 'femije', label: 'Fëmijë' }, { key: 'unisex', label: 'Unisex' },
@@ -43,23 +44,36 @@ function art(emoji, from, to) {
 function seed() {
   const v = (list) => list.map((x) => ({ _id: id(), size: '', color: '', stock: 0, ...x }));
   const products = [
-    { name: 'Krem hidratues me acid hialuronik', gender: 'femra', category: 'kremra', price: 1800, compareAtPrice: 2400, featured: true, images: [art('🧴', '#f3ece6', '#e2d2c4')], description: 'Krem i lehtë për çdo ditë që e mban lëkurën të hidratuar deri në 24 orë. Thithet shpejt dhe nuk lë shkëlqim.', howToUse: 'Në mëngjes dhe në mbrëmje, mbi lëkurë të pastër. Masazho lehtë derisa të thithet.', ingredients: 'Aqua, Glycerin, Sodium Hyaluronate, Niacinamide, Squalane, Panthenol, Allantoin, Phenoxyethanol', variants: v(['30 ml', '50 ml', '100 ml'].map((size) => ({ size, stock: size === '50 ml' ? 3 : 0 }))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 28 } },
-    { name: 'Patch për sytë me kolagjen (60 copë)', gender: 'femra', category: 'syte', price: 1500, featured: true, images: [art('👁️', '#efe6ee', '#d9c3d6')], description: 'Patch xhel që zbutin rrathët e errët dhe fryrjen nën sy. 30 palë në kuti.', howToUse: 'Vendosi nën sy për 15–20 minuta mbi lëkurë të pastër. Hiqi dhe masazho pjesën e mbetur.', ingredients: 'Aqua, Glycerin, Hydrolyzed Collagen, Carrageenan, Caffeine, Niacinamide, Allantoin', variants: v(['Kolagjen', 'Ar 24K', 'Kafe', 'Perla'].map((color) => ({ color, stock: color === 'Kolagjen' ? 8 : 0 }))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 18 } },
-    { name: 'Maskë fytyre me fletë (10 copë)', gender: 'femra', category: 'maska', price: 1200, compareAtPrice: 1600, featured: true, images: [art('🧖‍♀️', '#e9eef0', '#c8d7dc')], description: 'Maska me fletë pambuku, secila me esencë të pasur për një lëkurë të freskët e të ndritshme.', howToUse: 'Vendose maskën mbi fytyrë të pastër për 15–20 minuta. Hiqe dhe masazho esencën e mbetur.', ingredients: 'Aqua, Glycerin, Butylene Glycol, Niacinamide, Centella Asiatica Extract, Sodium Hyaluronate', variants: v(['Hidratuese', 'Ndriçuese', 'Qetësuese'].map((color) => ({ color, stock: 2 }))), supplier: { name: 'Yiwu Beauty', url: '', costCny: 12 } },
-    { name: 'Serum me vitaminë C', gender: 'unisex', category: 'serume', price: 2200, images: [art('💧', '#f4efe2', '#e3d6b5')], description: 'Serum ndriçues që ndihmon për njollat dhe tonin e pabarabartë të lëkurës.', howToUse: '2–3 pika në mëngjes para kremit hidratues. Përdor mbrojtje nga dielli gjatë ditës.', ingredients: 'Aqua, Ascorbyl Glucoside, Propylene Glycol, Niacinamide, Sodium Hyaluronate, Tocopherol', variants: v(['15 ml', '30 ml'].map((size) => ({ size }))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 32 } },
-    { name: 'Krem nate kundër rrudhave', gender: 'femra', category: 'kremra', price: 2600, featured: true, images: [art('🌙', '#e8e6f1', '#c9c4de')], description: 'Krem i pasur për natën që e lë lëkurën më të lëmuar dhe më elastike në mëngjes.', howToUse: 'Në mbrëmje, pas pastrimit. Shmang zonën rreth syve.', ingredients: 'Aqua, Caprylic/Capric Triglyceride, Glycerin, Retinyl Palmitate, Palmitoyl Tripeptide-1, Shea Butter', variants: v(['30 ml', '50 ml'].flatMap((size) => ['Retinol', 'Peptide'].map((color) => ({ size, color })))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 36 } },
-    { name: 'Xhel pastrues fytyre për meshkuj', gender: 'meshkuj', category: 'pastrues', price: 1100, images: [art('🧼', '#e4eaee', '#bfcdd6')], description: 'Pastron yndyrën dhe papastërtitë pa e tharë lëkurën. Me qymyr aktiv dhe mentol.', howToUse: 'Në mëngjes dhe në mbrëmje, fërko mbi fytyrë të lagur dhe shpëlaje me ujë.', ingredients: 'Aqua, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Charcoal Powder, Menthol, Glycerin', variants: v([{ size: '150 ml', stock: 4 }]), supplier: { name: 'Yiwu Beauty', url: '', costCny: 14 } },
-    { name: 'Maskë balte pastruese', gender: 'unisex', category: 'maska', price: 1300, images: [art('🫧', '#ece9e3', '#d3cbbd')], description: 'Thith yndyrën e tepërt dhe pastron poret në thellësi.', howToUse: 'Një deri në dy herë në javë. Lyeje, prit 10 minuta dhe shpëlaje me ujë të vakët.', ingredients: 'Kaolin, Bentonite, Aqua, Glycerin, Charcoal Powder, Tea Tree Leaf Oil', variants: v(['Argjilë e bardhë', 'Qymyr', 'Rozë'].map((color) => ({ color }))), supplier: { name: 'Yiwu Beauty', url: '', costCny: 15 } },
+    { name: 'Krem hidratues me acid hialuronik', gender: 'femra', routineStep: 'krem', skinTypes: ['normale', 'e_thate', 'e_perzier', 'e_ndjeshme'], concerns: ['thatesi'], category: 'kremra', price: 1800, compareAtPrice: 2400, featured: true, images: [art('🧴', '#f3ece6', '#e2d2c4')], description: 'Krem i lehtë për çdo ditë që e mban lëkurën të hidratuar deri në 24 orë. Thithet shpejt dhe nuk lë shkëlqim.', howToUse: 'Në mëngjes dhe në mbrëmje, mbi lëkurë të pastër. Masazho lehtë derisa të thithet.', ingredients: 'Aqua, Glycerin, Sodium Hyaluronate, Niacinamide, Squalane, Panthenol, Allantoin, Phenoxyethanol', variants: v(['30 ml', '50 ml', '100 ml'].map((size) => ({ size, stock: size === '50 ml' ? 3 : 0 }))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 28 } },
+    { name: 'Patch për sytë me kolagjen (60 copë)', gender: 'femra', routineStep: 'sy', concerns: ['syte', 'rrudha'], category: 'syte', price: 1500, featured: true, images: [art('👁️', '#efe6ee', '#d9c3d6')], description: 'Patch xhel që zbutin rrathët e errët dhe fryrjen nën sy. 30 palë në kuti.', howToUse: 'Vendosi nën sy për 15–20 minuta mbi lëkurë të pastër. Hiqi dhe masazho pjesën e mbetur.', ingredients: 'Aqua, Glycerin, Hydrolyzed Collagen, Carrageenan, Caffeine, Niacinamide, Allantoin', variants: v(['Kolagjen', 'Ar 24K', 'Kafe', 'Perla'].map((color) => ({ color, stock: color === 'Kolagjen' ? 8 : 0 }))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 18 } },
+    { name: 'Maskë fytyre me fletë (10 copë)', gender: 'femra', routineStep: 'maske', concerns: ['thatesi', 'njolla', 'skuqje'], category: 'maska', price: 1200, compareAtPrice: 1600, featured: true, images: [art('🧖‍♀️', '#e9eef0', '#c8d7dc')], description: 'Maska me fletë pambuku, secila me esencë të pasur për një lëkurë të freskët e të ndritshme.', howToUse: 'Vendose maskën mbi fytyrë të pastër për 15–20 minuta. Hiqe dhe masazho esencën e mbetur.', ingredients: 'Aqua, Glycerin, Butylene Glycol, Niacinamide, Centella Asiatica Extract, Sodium Hyaluronate', variants: v(['Hidratuese', 'Ndriçuese', 'Qetësuese'].map((color) => ({ color, stock: 2 }))), supplier: { name: 'Yiwu Beauty', url: '', costCny: 12 } },
+    { name: 'Serum me vitaminë C', gender: 'unisex', routineStep: 'serum', skinTypes: ['normale', 'e_yndyrshme', 'e_perzier'], concerns: ['njolla'], category: 'serume', price: 2200, images: [art('💧', '#f4efe2', '#e3d6b5')], description: 'Serum ndriçues që ndihmon për njollat dhe tonin e pabarabartë të lëkurës.', howToUse: '2–3 pika në mëngjes para kremit hidratues. Përdor mbrojtje nga dielli gjatë ditës.', ingredients: 'Aqua, Ascorbyl Glucoside, Propylene Glycol, Niacinamide, Sodium Hyaluronate, Tocopherol', variants: v(['15 ml', '30 ml'].map((size) => ({ size }))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 32 } },
+    { name: 'Krem nate kundër rrudhave', gender: 'femra', routineStep: 'krem', skinTypes: ['normale', 'e_thate'], concerns: ['rrudha', 'thatesi'], category: 'kremra', price: 2600, featured: true, images: [art('🌙', '#e8e6f1', '#c9c4de')], description: 'Krem i pasur për natën që e lë lëkurën më të lëmuar dhe më elastike në mëngjes.', howToUse: 'Në mbrëmje, pas pastrimit. Shmang zonën rreth syve.', ingredients: 'Aqua, Caprylic/Capric Triglyceride, Glycerin, Retinyl Palmitate, Palmitoyl Tripeptide-1, Shea Butter', variants: v(['30 ml', '50 ml'].flatMap((size) => ['Retinol', 'Peptide'].map((color) => ({ size, color })))), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 36 } },
+    { name: 'Xhel pastrues fytyre për meshkuj', gender: 'meshkuj', routineStep: 'pastrues', skinTypes: ['normale', 'e_yndyrshme', 'e_perzier'], concerns: ['pucrra', 'shkelqim'], category: 'pastrues', price: 1100, images: [art('🧼', '#e4eaee', '#bfcdd6')], description: 'Pastron yndyrën dhe papastërtitë pa e tharë lëkurën. Me qymyr aktiv dhe mentol.', howToUse: 'Në mëngjes dhe në mbrëmje, fërko mbi fytyrë të lagur dhe shpëlaje me ujë.', ingredients: 'Aqua, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Charcoal Powder, Menthol, Glycerin', variants: v([{ size: '150 ml', stock: 4 }]), supplier: { name: 'Yiwu Beauty', url: '', costCny: 14 } },
+    { name: 'Maskë balte pastruese', gender: 'unisex', routineStep: 'maske', skinTypes: ['e_yndyrshme', 'e_perzier'], concerns: ['pucrra', 'shkelqim'], category: 'maska', price: 1300, images: [art('🫧', '#ece9e3', '#d3cbbd')], description: 'Thith yndyrën e tepërt dhe pastron poret në thellësi.', howToUse: 'Një deri në dy herë në javë. Lyeje, prit 10 minuta dhe shpëlaje me ujë të vakët.', ingredients: 'Kaolin, Bentonite, Aqua, Glycerin, Charcoal Powder, Tea Tree Leaf Oil', variants: v(['Argjilë e bardhë', 'Qymyr', 'Rozë'].map((color) => ({ color }))), supplier: { name: 'Yiwu Beauty', url: '', costCny: 15 } },
     { name: 'Krem duarsh me gjalpë shea', gender: 'femra', category: 'trupi', price: 700, images: [art('🤲', '#f2ebe3', '#e0cfbb')], description: 'Ushqen duart e thata pa i lënë të yndyrshme.', howToUse: 'Sa herë të duhet, sidomos pas larjes së duarve.', ingredients: 'Aqua, Butyrospermum Parkii Butter, Glycerin, Cetearyl Alcohol, Tocopherol, Parfum', variants: v([{ size: '50 ml', stock: 6 }]), supplier: { name: 'Yiwu Beauty', url: '', costCny: 6 } },
     { name: 'Balsam buzësh me mjaltë', gender: 'unisex', category: 'buzet', price: 600, compareAtPrice: 800, images: [art('💋', '#f5e6e8', '#e5c2c8')], description: 'Ushqen dhe mbron buzët e thata e të çara.', howToUse: 'Lyej mbi buzë sa herë të duhet.', ingredients: 'Cera Alba, Butyrospermum Parkii Butter, Mel, Ricinus Communis Seed Oil, Tocopherol', variants: v(['Pa ngjyrë', 'Rozë'].map((color) => ({ color, stock: 10 }))), supplier: { name: 'Yiwu Beauty', url: '', costCny: 5 } },
-    { name: 'Krem pas rroje për meshkuj', gender: 'meshkuj', category: 'kremra', price: 1000, images: [art('🪒', '#e6ebe8', '#c2d0c8')], description: 'Qetëson lëkurën pas rrojës dhe parandalon skuqjen.', howToUse: 'Pas rrojës, mbi lëkurë të thatë.', ingredients: 'Aqua, Glycerin, Aloe Barbadensis Leaf Juice, Allantoin, Panthenol, Menthol', variants: v([{ size: '100 ml' }]), supplier: { name: 'Yiwu Beauty', url: '', costCny: 11 } },
+    { name: 'Krem pas rroje për meshkuj', gender: 'meshkuj', routineStep: 'krem', concerns: ['skuqje'], category: 'kremra', price: 1000, images: [art('🪒', '#e6ebe8', '#c2d0c8')], description: 'Qetëson lëkurën pas rrojës dhe parandalon skuqjen.', howToUse: 'Pas rrojës, mbi lëkurë të thatë.', ingredients: 'Aqua, Glycerin, Aloe Barbadensis Leaf Juice, Allantoin, Panthenol, Menthol', variants: v([{ size: '100 ml' }]), supplier: { name: 'Yiwu Beauty', url: '', costCny: 11 } },
+    { name: 'Xhel pastrues i butë', gender: 'femra', routineStep: 'pastrues', skinTypes: ['normale', 'e_thate', 'e_ndjeshme'], concerns: ['skuqje', 'thatesi'], category: 'pastrues', price: 1000, images: [art('🫧', '#eef0ec', '#cfd8cb')], description: 'Pastron butësisht pa e tharë lëkurën. Pa parfum.', howToUse: 'Mëngjes dhe mbrëmje, mbi fytyrë të lagur; shpëlaje me ujë të vakët.', ingredients: 'Aqua, Glycerin, Coco-Glucoside, Panthenol, Allantoin, Centella Asiatica Extract', variants: v([{ size: '150 ml', stock: 5 }]), supplier: { name: 'Yiwu Beauty', url: '', costCny: 12 } },
+    { name: 'Pastrues me acid salicilik', gender: 'femra', routineStep: 'pastrues', skinTypes: ['e_yndyrshme', 'e_perzier'], concerns: ['pucrra', 'shkelqim'], category: 'pastrues', price: 1150, featured: true, images: [art('🍃', '#e6efe7', '#bed4c1')], description: 'Pastron poret në thellësi dhe ndihmon për puçrrat.', howToUse: 'Mbrëmjeve, 1 herë në ditë në fillim. Shmang zonën e syve.', ingredients: 'Aqua, Sodium Cocoyl Glycinate, Salicylic Acid 2%, Niacinamide, Zinc PCA, Tea Tree Leaf Oil', variants: v([{ size: '120 ml', stock: 0 }]), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 15 } },
+    { name: 'Xhel-krem i lehtë pa yndyrë', gender: 'unisex', routineStep: 'krem', skinTypes: ['e_yndyrshme', 'e_perzier'], concerns: ['pucrra', 'shkelqim'], category: 'kremra', price: 1500, images: [art('🧊', '#e5eef3', '#bfd6e3')], description: 'Hidraton pa e rënduar lëkurën dhe pa bllokuar poret.', howToUse: 'Mëngjes dhe mbrëmje pas pastrimit.', ingredients: 'Aqua, Glycerin, Niacinamide, Zinc PCA, Sodium Hyaluronate, Centella Asiatica Extract', variants: v([{ size: '50 ml', stock: 2 }]), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 20 } },
+    { name: 'Fondatinë me mbulim mesatar', gender: 'femra', routineStep: 'grim', skinTypes: ['normale', 'e_perzier', 'e_yndyrshme'], concerns: ['njolla'], category: 'grim', price: 1900, featured: true, images: [art('💄', '#f3e7df', '#e2c6b3')], description: 'Mbulim natyral që zgjat gjithë ditën, pa efekt maske. 30 ml.', howToUse: 'Me sfungjer ose furçë, nga qendra e fytyrës drejt anëve.', ingredients: 'Aqua, Cyclopentasiloxane, Titanium Dioxide, Glycerin, Iron Oxides, Dimethicone', variants: v([
+      { color: '100 Porcelan', tone: 1, undertone: 'e_ftohte', stock: 2 },
+      { color: '110 Fildish', tone: 1, undertone: 'e_ngrohte', stock: 2 },
+      { color: '200 Bezhë e çelët', tone: 2, undertone: 'neutrale', stock: 3 },
+      { color: '220 Bezhë e ngrohtë', tone: 2, undertone: 'e_ngrohte' },
+      { color: '300 Bezhë natyrale', tone: 3, undertone: 'neutrale', stock: 3 },
+      { color: '330 Mjaltë', tone: 3, undertone: 'e_ngrohte' },
+      { color: '400 Karamel', tone: 4, undertone: 'e_ngrohte' },
+      { color: '500 Kakao', tone: 5, undertone: 'neutrale' },
+    ]), supplier: { name: 'Guangzhou Cosmetics', url: '', costCny: 26 } },
   ].map((p) => ({ _id: id(), slug: slugify(p.name), active: true, featured: false, compareAtPrice: undefined, createdAt: new Date().toISOString(), ...p }));
 
-  const emoji = { kremra: '🧴', maska: '🧖‍♀️', syte: '👁️', serume: '💧', pastrues: '🫧', buzet: '💋', trupi: '🛁' };
+  const emoji = { kremra: '🧴', maska: '🧖‍♀️', syte: '👁️', serume: '💧', pastrues: '🫧', buzet: '💋', trupi: '🛁', grim: '💄' };
   const categories = CATEGORIES.map((c, i) => ({ _id: id(), key: c.key, label: c.label, emoji: emoji[c.key] || '', image: '', position: i, active: true }));
   // A sample shopper so the admin's Klientët page isn't empty. Demo only: the password is kept as plain text in this browser.
   const customers = [{ _id: id(), name: 'Arbër Gjoka', phone: '+355693217788', password: 'demo123', address: { city: 'Shkodër', address: 'Rruga e Kavajës 45, kati 2' }, active: true, createdAt: new Date().toISOString() }];
-  const db = { products, orders: [], shipments: [], seq: 1000, settings: clone(DEFAULT_SETTINGS), subscribers: [], categories, customers };
+  const db = { products, orders: [], shipments: [], seq: 1000, settings: clone(DEFAULT_SETTINGS), subscribers: [], categories, customers, quiz: [] };
   const day = 86400000;
   const mk = (name, phone, city, lines, status, ago, extra = {}) => {
     const order = buildOrder(db, { customer: { name, phone, city, address: 'Rruga e Kavajës 45, kati 2', note: '' }, items: lines }, true);
@@ -197,6 +211,11 @@ function route(method, seg, q, body, { auth, token } = {}) {
   db.categories = db.categories || [];
   db.customers = db.customers || [];
   if (a === 'categories') return { categories: activeCategories() };
+  if (a === 'skin-test' && b === 'answers') {
+    db.quiz = db.quiz || [];
+    db.quiz.unshift({ gender: body.gender, skinType: body.skinType, concerns: (body.concerns || []).slice(0, 7), tone: body.tone || null, undertone: body.undertone, createdAt: new Date().toISOString() });
+    return { ok: true };
+  }
   if (a === 'customers') {
     if (b === 'register' || b === 'login') {
       const login = parseLogin(body.login);
@@ -492,6 +511,18 @@ function route(method, seg, q, body, { auth, token } = {}) {
       }
     }
     return { settings: S() };
+  }
+  if (b === 'reports' && c === 'skin-test') {
+    const list = db.quiz || [];
+    const count = (opts, get) => opts.map(([key, label]) => ({ key, label, count: list.filter((r) => [].concat(get(r) ?? []).includes(key)).length })).sort((x, y) => y.count - x.count);
+    return {
+      days: 30,
+      total: list.length,
+      skinTypes: count([['normale', 'Normale'], ['e_thate', 'E thatë'], ['e_yndyrshme', 'E yndyrshme'], ['e_perzier', 'E përzier'], ['e_ndjeshme', 'E ndjeshme']], (r) => r.skinType),
+      concerns: count([['pucrra', 'Puçrra dhe pore të bllokuara'], ['njolla', 'Njolla dhe ton i pabarabartë'], ['rrudha', 'Rrudha dhe lëkurë e lëshuar'], ['syte', 'Rrathë të errët dhe fryrje nën sy'], ['thatesi', 'Thatësi dhe dehidratim'], ['skuqje', 'Skuqje dhe acarim'], ['shkelqim', 'Shkëlqim dhe pore të zmadhuara']], (r) => r.concerns),
+      tones: count([[1, 'Shumë e çelët'], [2, 'E çelët'], [3, 'Mesatare'], [4, 'E zeshkët'], [5, 'E errët']], (r) => r.tone),
+      undertones: [],
+    };
   }
   if (b === 'reports') {
     const now = new Date();

@@ -13,6 +13,7 @@ const newsletter = require('../controllers/newsletter.controller');
 const uploads = require('../controllers/uploads.controller');
 const categories = require('../controllers/categories.controller');
 const customers = require('../controllers/customers.controller');
+const quiz = require('../controllers/quiz.controller');
 
 const limiter = (max) =>
   rateLimit({
@@ -31,6 +32,8 @@ router.get('/config', h(shop.config));
 router.get('/products', h(shop.listProducts));
 router.get('/products/:slug', h(shop.getProduct));
 router.get('/categories', h(categories.publicList));
+router.get('/skin-test/options', quiz.options);
+router.post('/skin-test/answers', limiter(30), h(quiz.record));
 router.post('/orders', limiter(20), requireCustomer, h(shop.placeOrder));
 
 // Shopper accounts
@@ -71,6 +74,7 @@ admin.post('/shipments/:id/orders', h(shipments.addOrders));
 admin.delete('/shipments/:id/orders/:orderId', h(shipments.removeOrder));
 
 admin.get('/reports/summary', adminOnly, h(reports.summary));
+admin.get('/reports/skin-test', adminOnly, h(quiz.summary));
 
 admin.get('/settings', adminOnly, h(settings.get));
 admin.put('/settings', adminOnly, h(settings.update));

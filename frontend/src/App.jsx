@@ -13,6 +13,7 @@ import SavedPage from './pages/shop/SavedPage';
 import AccountPage from './pages/shop/AccountPage';
 import AboutPage from './pages/shop/AboutPage';
 import PaymentPage from './pages/shop/PaymentPage';
+import SkinTestPage from './pages/shop/SkinTestPage';
 import TermsPage from './pages/shop/TermsPage';
 import SubscribersPage from './pages/admin/SubscribersPage';
 import CategoriesPage from './pages/admin/CategoriesPage';
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="porosit" element={<CheckoutPage />} />
           <Route path="porosia-u-krye" element={<OrderDonePage />} />
           <Route path="pagesa" element={<PaymentPage />} />
+          <Route path="testi-i-lekures" element={<SkinTestPage />} />
           <Route path="gjurmo" element={<TrackPage />} />
           <Route path="info" element={<InfoPage />} />
           <Route path="te-ruajturat" element={<SavedPage />} />

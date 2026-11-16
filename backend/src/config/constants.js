@@ -10,6 +10,7 @@ const CATEGORIES = [
   { key: 'pastrues', label: 'Pastrues' },
   { key: 'buzet', label: 'Buzët' },
   { key: 'trupi', label: 'Kujdesi për trupin' },
+  { key: 'grim', label: 'Grimi' },
 ];
 
 // Who a product is for. Unisex products show up under every tab of the menu.
@@ -18,6 +19,50 @@ const GENDERS = [
   { key: 'meshkuj', label: 'Meshkuj' },
   { key: 'femije', label: 'Fëmijë' }, // kept for older products; not offered in the shop
   { key: 'unisex', label: 'Unisex' },
+];
+
+// ---- Skin test (Testi i lëkurës) ----
+const SKIN_TYPES = [
+  { key: 'normale', label: 'Normale' },
+  { key: 'e_thate', label: 'E thatë' },
+  { key: 'e_yndyrshme', label: 'E yndyrshme' },
+  { key: 'e_perzier', label: 'E përzier' },
+  { key: 'e_ndjeshme', label: 'E ndjeshme' },
+];
+
+const CONCERNS = [
+  { key: 'pucrra', label: 'Puçrra dhe pore të bllokuara' },
+  { key: 'njolla', label: 'Njolla dhe ton i pabarabartë' },
+  { key: 'rrudha', label: 'Rrudha dhe lëkurë e lëshuar' },
+  { key: 'syte', label: 'Rrathë të errët dhe fryrje nën sy' },
+  { key: 'thatesi', label: 'Thatësi dhe dehidratim' },
+  { key: 'skuqje', label: 'Skuqje dhe acarim' },
+  { key: 'shkelqim', label: 'Shkëlqim dhe pore të zmadhuara' },
+];
+
+// Where a product sits in a daily routine; the test builds one product per step.
+const ROUTINE_STEPS = [
+  { key: 'pastrues', label: 'Pastrimi' },
+  { key: 'serum', label: 'Serumi' },
+  { key: 'krem', label: 'Kremi' },
+  { key: 'sy', label: 'Për sytë' },
+  { key: 'maske', label: 'Maska (1–2 herë në javë)' },
+  { key: 'grim', label: 'Grimi / fondatina' },
+];
+
+// Skin tone for foundation shades: 1 = very light … 5 = deep.
+const SKIN_TONES = [
+  { key: 1, label: 'Shumë e çelët' },
+  { key: 2, label: 'E çelët' },
+  { key: 3, label: 'Mesatare' },
+  { key: 4, label: 'E zeshkët' },
+  { key: 5, label: 'E errët' },
+];
+
+const UNDERTONES = [
+  { key: 'e_ngrohte', label: 'E ngrohtë (e verdhë/e artë)' },
+  { key: 'e_ftohte', label: 'E ftohtë (rozë)' },
+  { key: 'neutrale', label: 'Neutrale' },
 ];
 
 // Order lifecycle, in the order an order normally moves through it.
@@ -62,5 +107,10 @@ module.exports = {
   SHIPMENT_STATUSES,
   SHIPMENT_TO_ORDER_STATUS,
   PAYMENT_METHODS,
+  SKIN_TYPES,
+  CONCERNS,
+  ROUTINE_STEPS,
+  SKIN_TONES,
+  UNDERTONES,
   keys,
 };

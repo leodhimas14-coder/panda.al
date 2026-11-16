@@ -28,6 +28,16 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="container section">
+        <Link to="/testi-i-lekures" className="quiz-cta">
+          <span className="quiz-cta-text">
+            <b>Nuk e di çfarë të zgjedhësh?</b>
+            <span>Bëj testin e lëkurës: rutina dhe nuanca e fondatinës për ty, në 1 minutë.</span>
+          </span>
+          <span className="btn btn-primary">Fillo testin</span>
+        </Link>
+      </section>
+
       <ProductSection title={home.featuredTitle} state={featured} />
 
       <ProductSection title={home.latestTitle} state={latest} link="/dyqani" />

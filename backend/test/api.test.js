@@ -426,6 +426,35 @@ test('page texts and home titles are editable', async () => {
   assert.equal(cfg.home.latestTitle, 'Të rejat', 'empty falls back to the default');
 });
 
+test('skin test: product skin data, shades, anonymous answers and summary', async () => {
+  const bad = await asAdmin(request(app).post('/api/admin/products')).send({ name: 'X', category: 'kremra', price: 1, skinTypes: ['jeshile'] });
+  assert.equal(bad.status, 400, 'unknown skin type refused');
+
+  const res = await asAdmin(request(app).post('/api/admin/products')).send({
+    name: 'Fondatinë test', category: 'grim', price: 1900, routineStep: 'grim',
+    skinTypes: ['e_yndyrshme'], concerns: ['pucrra'],
+    variants: [{ color: '100 Porcelan', tone: 1, undertone: 'e_ftohte' }, { color: '400 Karamel', tone: 4, undertone: '' }],
+  });
+  assert.equal(res.status, 201);
+  const pub = await request(app).get(`/api/products/${res.body.product.slug}`);
+  assert.deepEqual(pub.body.product.skinTypes, ['e_yndyrshme']);
+  assert.equal(pub.body.product.variants[0].tone, 1);
+  assert.equal(pub.body.product.routineStep, 'grim');
+
+  const opts = (await request(app).get('/api/skin-test/options')).body;
+  assert.equal(opts.tones.length, 5);
+
+  assert.equal((await request(app).post('/api/skin-test/answers').send({})).status, 400);
+  await request(app).post('/api/skin-test/answers').send({ gender: 'femra', skinType: 'e_yndyrshme', concerns: ['pucrra', 'shkelqim', 'hack'], tone: 2, undertone: 'neutrale', name: 'ignored' });
+  await request(app).post('/api/skin-test/answers').send({ gender: 'femra', skinType: 'e_thate', concerns: ['pucrra'] });
+
+  assert.equal((await asStaff(request(app).get('/api/admin/reports/skin-test'))).status, 403);
+  const sum = (await asAdmin(request(app).get('/api/admin/reports/skin-test'))).body;
+  assert.equal(sum.total, 2);
+  assert.deepEqual(sum.concerns[0], { key: 'pucrra', label: 'Puçrra dhe pore të bllokuara', count: 2 });
+  assert.equal(sum.tones.find((t) => t.key === 2).count, 1);
+});
+
 test('admin routes need a token', async () => {
   const res = await request(app).get('/api/admin/orders');
   assert.equal(res.status, 401);

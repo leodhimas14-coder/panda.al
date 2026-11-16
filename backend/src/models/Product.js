@@ -1,10 +1,13 @@
 const mongoose = require('mongoose');
-const { GENDERS, keys } = require('../config/constants');
+const { GENDERS, SKIN_TYPES, CONCERNS, ROUTINE_STEPS, UNDERTONES, keys } = require('../config/constants');
 
 const variantSchema = new mongoose.Schema(
   {
     size: { type: String, trim: true, default: '' }, // shown as "Madhësia", e.g. 50 ml
-    color: { type: String, trim: true, default: '' }, // shown as "Lloji", e.g. për lëkurë të thatë
+    color: { type: String, trim: true, default: '' }, // shown as "Lloji", e.g. për lëkurë të thatë or a shade name
+    // Foundation/concealer shades: which skin tone (1 very light … 5 deep) and undertone it suits.
+    tone: { type: Number, min: 1, max: 5 },
+    undertone: { type: String, enum: [...keys(UNDERTONES), ''] },
     // Units already in the Albania warehouse. 0 means "order from China" (longer delivery).
     stock: { type: Number, min: 0, default: 0 },
   },
@@ -21,6 +24,10 @@ const productSchema = new mongoose.Schema(
     // Cosmetics: full ingredient list (INCI, as on the box) and directions.
     ingredients: { type: String, default: '' },
     howToUse: { type: String, default: '' },
+    // Skin test: empty skinTypes = suits every skin type.
+    skinTypes: [{ type: String, enum: keys(SKIN_TYPES) }],
+    concerns: [{ type: String, enum: keys(CONCERNS) }],
+    routineStep: { type: String, enum: [...keys(ROUTINE_STEPS), ''], default: '' },
     images: [{ type: String, trim: true }],
     price: { type: Number, required: true, min: 0 }, // lekë
     compareAtPrice: { type: Number, min: 0 }, // old price shown crossed out

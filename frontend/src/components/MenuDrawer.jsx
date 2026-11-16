@@ -53,6 +53,10 @@ export default function MenuDrawer({ open, onClose, top = 0 }) {
         ))}
       </div>
 
+      <Link to="/testi-i-lekures" onClick={onClose} className="menu-quiz">
+        <span><b>✨ Testi i lëkurës</b><span className="muted small">Gjej rutinën dhe nuancën tënde në 1 minutë</span></span>
+        <Icon name="caret" size={16} filled stroke={0} />
+      </Link>
       <nav className="menu-list">
         {ROWS.map((row) => (
           <Link key={row.label} to={href(row.params)} onClick={onClose} className={row.params.oferta ? 'menu-sale' : ''}>
